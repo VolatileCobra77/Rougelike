@@ -12,15 +12,29 @@ public class Main extends ApplicationAdapter {
     private SpriteBatch batch;
     private Texture image;
 
+
+
+
     @Override
     public void create() {
         batch = new SpriteBatch();
         image = new Texture("libgdx.png");
     }
 
+    private void _process_keyboard_inputs(){
+
+    }
+
+
     @Override
     public void render() {
         ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
+        _process_keyboard_inputs();
+
+
+
+
+
         batch.begin();
         batch.draw(image, 140, 210);
         batch.end();
