@@ -10,6 +10,7 @@ dependencies {
   api "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
   api "com.badlogicgames.gdx:gdx:$gdxVersion"
   api "org.apache.groovy:groovy-all:$groovyVersion"
+  implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.0'
 
   if(enableGraalNative == 'true') {
     implementation "io.github.berstanio:gdx-svmhelper-annotations:$graalHelperVersion"
