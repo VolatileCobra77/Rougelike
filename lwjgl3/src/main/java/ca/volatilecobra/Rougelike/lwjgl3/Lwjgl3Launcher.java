@@ -1,5 +1,7 @@
 package ca.volatilecobra.Rougelike.lwjgl3;
 
+import ca.volatilecobra.Rougelike.Utils.PrintStreamTypes;
+import ca.volatilecobra.Rougelike.Utils.TaggedPrintStream;
 import ca.volatilecobra.SettingsManager;
 import com.badlogic.gdx.Graphics;
 import com.badlogic.gdx.Graphics.DisplayMode;
@@ -10,6 +12,8 @@ import ca.volatilecobra.Rougelike.Main;
 /** Launches the desktop (LWJGL3) application. */
 public class Lwjgl3Launcher {
     public static void main(String[] args) {
+        System.setOut(new TaggedPrintStream(System.out, PrintStreamTypes.INFO));
+        System.setErr(new TaggedPrintStream(System.err, PrintStreamTypes.ERR));
         if (StartupHelper.startNewJvmIfRequired()) return; // This handles macOS support and helps on Windows.
         createApplication();
     }

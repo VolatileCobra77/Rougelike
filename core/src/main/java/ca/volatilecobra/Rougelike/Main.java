@@ -2,6 +2,7 @@ package ca.volatilecobra.Rougelike;
 
 import ca.volatilecobra.Rougelike.Entities.Entity;
 import ca.volatilecobra.Rougelike.Entities.Player;
+import ca.volatilecobra.Rougelike.Mods.Modloader;
 import ca.volatilecobra.Rougelike.World.WorldManager;
 import ca.volatilecobra.SettingsManager;
 import com.badlogic.gdx.ApplicationAdapter;
@@ -31,6 +32,9 @@ public class Main extends ApplicationAdapter {
 
     @Override
     public void create() {
+        Modloader.SearchForMods("assets/mods");
+        Modloader.SearchForMods(System.getProperty("user.dir") + "/mods");
+        Modloader.loadMods();
         batch = new SpriteBatch();
         shape_renderer = new ShapeRenderer();
         font = new BitmapFont();
@@ -66,7 +70,9 @@ public class Main extends ApplicationAdapter {
 
     @Override
     public void render() {
+
         float delta = Gdx.graphics.getDeltaTime();
+        Modloader.UpdateMods(delta);
         ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
         _process_keyboard_inputs();
         Entity.update_all(delta);
@@ -77,11 +83,13 @@ public class Main extends ApplicationAdapter {
 
         batch.begin();
         Entity.Render_all(batch);
+        Modloader.RenderMods(batch);
         world.render(batch);
         if (GlobalVariables.DEBUG_ENABLED) draw_debug(batch);
         batch.end();
         shape_renderer.begin(ShapeRenderer.ShapeType.Filled);
         Entity.Render_all(shape_renderer);
+        Modloader.RenderMods(shape_renderer);
         if (GlobalVariables.DEBUG_ENABLED) draw_debug(shape_renderer);
         shape_renderer.end();
     }

@@ -29,7 +29,6 @@ public class WorldManager {
     public void generate(Collection<Tile> prototypes) {
         List<Tile> tileList = new ArrayList<>(prototypes);
         if (tileList.isEmpty()){
-            Tile.create_defualts();
             tileList = new ArrayList<Tile>(Tile.TILES.values());
         }
 
