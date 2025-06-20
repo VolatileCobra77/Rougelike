@@ -19,46 +19,10 @@ public class WorldManager {
     }
 
     public void generate(Collection<Room> prototypes) {
-        List<Room> possibleRooms = new ArrayList<>(prototypes);
-        if (possibleRooms.isEmpty()) return;
+        ArrayList<Room> roomArrayList = new ArrayList<Room>(prototypes);
 
-        Room startProto = possibleRooms.get(random.nextInt(possibleRooms.size()));
-        Room start = startProto.copy(0, new Vector2(0, 0));
-        rooms.add(start);
-        occupied.add(start.location);
-
-        Queue<Room> queue = new LinkedList<>();
-        queue.add(start);
-
-        int count = 1;
-
-        while (!queue.isEmpty() && count < num_rooms) {
-            Room current = queue.poll();
-
-            for (Direction dir : Direction.values()) {
-                if (count >= num_rooms) break;
-
-                List<Room> candidates = getAllowedRooms(current, dir);
-                if (candidates == null || candidates.isEmpty()) continue;
-
-                Room nextProto = candidates.get(random.nextInt(candidates.size()));
-                Vector2 offset = getExitOffset(current, nextProto, dir);
-                if (offset == null) continue; // Skip this direction if no valid exits
-
-                Vector2 newPos = current.location.cpy().add(offset);
-
-                if (isOccupied(newPos)) continue;
-
-                Room next = nextProto.copy(count, newPos);
-                next.update_tile_pos();
-
-                rooms.add(next);
-                queue.add(next);
-                occupied.add(newPos);
-                System.out.println("Placing room " + next.name + " at position " + next.location);
-                count++;
-            }
-        }
+        Room selected = roomArrayList.get(random.nextInt(roomArrayList.size()));
+        selected = selected.copy(0, new Vector2(0,0));
     }
 
     private boolean isOccupied(Vector2 location) {
