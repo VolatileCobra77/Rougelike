@@ -1,0 +1,15 @@
+{
+  "window" : {
+    "width" : 800,
+    "height" : 600,
+    "vsync" : false,
+    "max_fps" : 60,
+    "fullscreen" : false
+  },
+  "controls" : {
+    "forward" : [ 51, 19 ],
+    "backward" : [ 47, 20 ],
+    "left" : [ 29, 21 ],
+    "right" : [ 32, 22 ]
+  }
+}
