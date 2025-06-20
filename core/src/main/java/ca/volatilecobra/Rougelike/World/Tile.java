@@ -11,6 +11,8 @@ import java.util.*;
 
 public class Tile {
 
+    public static int tile_size = 16;
+
     public Texture _tex;
     public Vector2 _world_pos;
 
@@ -35,7 +37,7 @@ public class Tile {
         this._world_pos = new Vector2();
 
         if (TILES.containsKey(name)) {
-            throw new IllegalArgumentException("Tile with name '" + name + "' already exists.");
+            this.name += ".";
         }
 
         TILES.put(name, this);
@@ -91,6 +93,19 @@ public class Tile {
 
 
         return null;
+    }
+
+    public Tile copy(int index){
+        Tile t =new Tile(this.name + index, this._tex);
+        t.allowed_up = this.allowed_up;
+        t.allowed_down = this.allowed_down;
+        t.allowed_left = this.allowed_left;
+        t.allowed_right = this.allowed_right;
+        t.allowed_up_left = this.allowed_up_left;
+        t.allowed_up_right = this.allowed_up_right;
+        t.allowed_down_left = this.allowed_down_left;
+        t.allowed_down_right = this.allowed_down_right;
+        return t;
     }
 
 }

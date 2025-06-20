@@ -23,9 +23,10 @@ import java.util.stream.Stream;
 public class Modloader {
 
     public static Map<String, Mod> LOADED_MODS = new HashMap<String, Mod>();
-
+    private static String lastPath = "";
     public static void SearchForMods(String path){
         File dir = new File(path);
+        lastPath = path;
         File extracted_dir = new File(path +"/extracted");
         if (!extracted_dir.exists()){
             System.out.println("Extracted directory not found, creating directory...");
@@ -49,6 +50,7 @@ public class Modloader {
                             File extracted_mod_dir = new File(extracted_dir.getAbsolutePath() + file.getName());
                             try {
                                 Mod mod = findSingleModClass(Path.of(extracted_mod_dir.getAbsolutePath()));
+                                mod.directory = extracted_mod_dir.getAbsolutePath();
                                 LOADED_MODS.put(mod.getName(), mod);
                             }catch (Exception e){
                                 System.err.println("Error loading mod " + file.getName() + "skipping...");
@@ -172,5 +174,13 @@ public class Modloader {
         }
         System.err.println("Method not found: " + methodName + " in class " + clazz.getName());
         return null;
+    }
+
+    public static void LoadSingleMod(Mod instance) {
+        LOADED_MODS.put(instance.getName(), instance);
+    }
+
+    public static String GetModsDir() {
+        return lastPath;
     }
 }

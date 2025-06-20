@@ -2,6 +2,7 @@ package ca.volatilecobra.Rougelike;
 
 import ca.volatilecobra.Rougelike.Entities.Entity;
 import ca.volatilecobra.Rougelike.Entities.Player;
+import ca.volatilecobra.Rougelike.Mods.DefaultTextures;
 import ca.volatilecobra.Rougelike.Mods.Modloader;
 import ca.volatilecobra.Rougelike.World.WorldManager;
 import ca.volatilecobra.SettingsManager;
@@ -32,15 +33,15 @@ public class Main extends ApplicationAdapter {
 
     @Override
     public void create() {
-        Modloader.SearchForMods("assets/mods");
         Modloader.SearchForMods(System.getProperty("user.dir") + "/mods");
+        Modloader.LoadSingleMod(new DefaultTextures());
         Modloader.loadMods();
         batch = new SpriteBatch();
         shape_renderer = new ShapeRenderer();
         font = new BitmapFont();
         localPlayer = new Player(new Vector2(0,0));
         System.out.println("Entity count: " + ENTITIES.size());
-        world = new WorldManager(100,100,10);
+        world = new WorldManager(10);
 
     }
 
