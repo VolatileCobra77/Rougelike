@@ -15,6 +15,7 @@ public class Tile {
 
     public Texture _tex;
     public Vector2 _world_pos;
+    public boolean collides = false;
 
     public List<Tile> allowed_up = new ArrayList<>();
     public List<Tile> allowed_down = new ArrayList<>();
@@ -32,6 +33,18 @@ public class Tile {
     public static final Map<String, Tile> TILES = new HashMap<>();
 
     public Tile(String name, Texture tex) {
+        this.name = name;
+        this._tex = tex;
+        this._world_pos = new Vector2();
+
+        if (TILES.containsKey(name)) {
+            this.name += ".";
+        }
+
+        TILES.put(name, this);
+    }
+    public Tile(String name, Texture tex, boolean collides){
+        this.collides = collides;
         this.name = name;
         this._tex = tex;
         this._world_pos = new Vector2();

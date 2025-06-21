@@ -34,6 +34,47 @@ public abstract class Mod {
     abstract void Render_objects(SpriteBatch spriteBatch);
 
     /**
+     * Renders shapes seperate of the cameras projection matrix
+     * @param shapeRenderer the shape renderer used
+     *
+     */
+
+    abstract void Render_shapes_ui(ShapeRenderer shapeRenderer);
+
+    /**
+     * Renders objects seperate of the cameras projeection matrix
+     * @param spriteBatch Sprite batch to render objects
+     */
+    abstract void Render_objects_ui(SpriteBatch spriteBatch);
+
+    /**
+     * Renders objects when GlobalVars.DEBUG_ACTIVE is true, aka f3 presed in game
+     * @param spriteBatch Sprite batch to render objects
+     */
+
+    abstract void Render_debug_objects(SpriteBatch spriteBatch);
+
+    /**
+     * Renders shapes when the GlobalVars.DEBUG_ACTIVE is true, aka f3 pressed in game
+     * @param shapeRenderer Shape renderer used
+     */
+    abstract void Render_debug_shapes(ShapeRenderer shapeRenderer);
+
+    /**
+     * Renders objects when the GlobalVars.DEBUG_ACTIVE is true, and seperate of the cameras projection matrix
+     * @param spriteBatch Sprite batch used
+     */
+
+    abstract void Render_debug_objects_ui(SpriteBatch spriteBatch);
+
+    /**
+     * Renders shapes when the GlobalVars.DEBUG_ACTIVE is true, and seperate of the cameras projection matrix
+     * @param shapeRenderer the shape renderer used
+     */
+
+    abstract void Render_debug_shapes_ui(ShapeRenderer shapeRenderer);
+
+    /**
      * Called every frame, implement repeating logic such as enemy ai updates and custom controls here
      * @param dt time between frames.
      */

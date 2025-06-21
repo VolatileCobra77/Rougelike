@@ -54,8 +54,6 @@ public class Room {
     }
 
     public void update_tile_pos(){
-        this.location.x *= this.size.x;
-        this.location.y *= this.size.y;
         for (int x = 0; x < tiles.length; x++) {
             for (int y = 0; y < tiles[x].length; y++) {
                 tiles[x][y]._world_pos.x += this.location.x;
@@ -94,8 +92,9 @@ public class Room {
     public void render(SpriteBatch spritebatch) {
         for (int y = 0; y < tiles.length; y++) {
             for (int x = 0; x < tiles[y].length; x++) {
-                if (tiles[x][y] != null)
+                if (tiles[x][y] != null){
                     tiles[x][y].render(spritebatch);
+                }
             }
         }
     }

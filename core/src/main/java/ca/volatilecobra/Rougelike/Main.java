@@ -10,10 +10,13 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.ScreenUtils;
 import net.bytebuddy.agent.builder.AgentBuilder;
@@ -28,6 +31,7 @@ public class Main extends ApplicationAdapter {
     public Player localPlayer;
     public WorldManager world;
     public BitmapFont font;
+    public OrthographicCamera cam = new OrthographicCamera();
 
 
 
@@ -42,6 +46,9 @@ public class Main extends ApplicationAdapter {
         localPlayer = new Player(new Vector2(0,0));
         System.out.println("Entity count: " + ENTITIES.size());
         world = new WorldManager(10);
+        GlobalVariables.CAMERA = cam;
+        cam.setToOrtho(false, Gdx.graphics.getWidth(),  Gdx.graphics.getHeight());
+
 
     }
 
@@ -52,20 +59,32 @@ public class Main extends ApplicationAdapter {
         if (SettingsManager.get().controls.backward.stream().anyMatch(Gdx.input::isKeyPressed)) inputDir.y -= 1;
         if (SettingsManager.get().controls.left.stream().anyMatch(Gdx.input::isKeyPressed)) inputDir.x -= 1;
         if (SettingsManager.get().controls.right.stream().anyMatch(Gdx.input::isKeyPressed)) inputDir.x += 1;
-        if (Gdx.input.isKeyPressed(Input.Keys.F3)) GlobalVariables.DEBUG_ENABLED = !GlobalVariables.DEBUG_ENABLED;
+        if (SettingsManager.get().controls.zoom_in.stream().anyMatch(Gdx.input::isKeyPressed)) cam.zoom = Math.max(0.01f, cam.zoom-0.01f);
+        if (SettingsManager.get().controls.zoom_out.stream().anyMatch(Gdx.input::isKeyPressed)) cam.zoom = Math.min(1f, cam.zoom += 0.01f);
+        if (Gdx.input.isKeyPressed(Input.Keys.F3)) {
+            GlobalVariables.DEBUG_ENABLED = !GlobalVariables.DEBUG_ENABLED;
+            System.out.println("Debug status: " + GlobalVariables.DEBUG_ENABLED);
+        }
 
 
         localPlayer.setDesiredDirection(inputDir);
     }
 
     private void draw_debug(SpriteBatch batch){
-        font.draw(batch, "FPS: " + Gdx.graphics.getFramesPerSecond() , 10, Gdx.graphics.getHeight() - 10);
-        font.draw(batch, "Frametime: " + Gdx.graphics.getDeltaTime() , 10, Gdx.graphics.getHeight() - 20);
+        Modloader.RenderModsDebug(batch);
     }
     private void draw_debug(ShapeRenderer shapeRenderer){
-
+        Modloader.RenderModsDebug(shapeRenderer);
     }
-
+    private void draw_debug_ui(ShapeRenderer shapeRenderer){
+        Modloader.RenderModsDebugUI(shapeRenderer);
+    }
+    private void draw_debug_ui(SpriteBatch batch){
+        font.draw(batch, "FPS: " + Gdx.graphics.getFramesPerSecond() , 10, Gdx.graphics.getHeight() - 10);
+        font.draw(batch, "Frametime: " + Gdx.graphics.getDeltaTime() , 10, Gdx.graphics.getHeight() - 20);
+        font.draw(batch, "World Pos: " + localPlayer.get_pos(), 10, Gdx.graphics.getHeight() - 30);
+        Modloader.RenderModsDebugUI(batch);
+    }
 
 
 
@@ -77,11 +96,13 @@ public class Main extends ApplicationAdapter {
         ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
         _process_keyboard_inputs();
         Entity.update_all(delta);
+        cam.position.set(localPlayer.get_pos().x + localPlayer.get_size().x /2, localPlayer.get_pos().y + localPlayer.get_size().y /2, 0);
+        cam.update();
 
 
-
-
-
+        //main render pass
+        batch.setProjectionMatrix(cam.combined);
+        shape_renderer.setProjectionMatrix(cam.combined);
         batch.begin();
         Entity.Render_all(batch);
         Modloader.RenderMods(batch);
@@ -93,11 +114,23 @@ public class Main extends ApplicationAdapter {
         Modloader.RenderMods(shape_renderer);
         if (GlobalVariables.DEBUG_ENABLED) draw_debug(shape_renderer);
         shape_renderer.end();
+
+        //ui render pass
+        batch.setProjectionMatrix(new Matrix4().setToOrtho2D(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
+        batch.begin();
+        if (GlobalVariables.DEBUG_ENABLED) draw_debug_ui(batch);
+        Modloader.RenderModsUI(batch);
+        batch.end();
+        shape_renderer.setProjectionMatrix(new Matrix4().setToOrtho2D(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
+        shape_renderer.begin(ShapeRenderer.ShapeType.Filled);
+        if (GlobalVariables.DEBUG_ENABLED) draw_debug_ui(shape_renderer);
+        shape_renderer.end();
     }
 
     @Override
     public void dispose() {
         batch.dispose();
-        image.dispose();
+
+        shape_renderer.dispose();
     }
 }

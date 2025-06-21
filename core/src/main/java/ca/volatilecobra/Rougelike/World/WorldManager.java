@@ -23,6 +23,8 @@ public class WorldManager {
 
         Room selected = roomArrayList.get(random.nextInt(roomArrayList.size()));
         selected = selected.copy(0, new Vector2(0,0));
+        selected.update_tile_pos();
+        rooms.add(selected);
     }
 
     private boolean isOccupied(Vector2 location) {

@@ -3,6 +3,7 @@ package ca.volatilecobra.Rougelike.Mods;
 
 
 import ca.volatilecobra.Rougelike.Utils.Ziputils;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
@@ -86,6 +87,41 @@ public class Modloader {
         }
     }
 
+    public static void RenderModsUI(SpriteBatch spriteBatch){
+        for (Mod mod :LOADED_MODS.values()){
+            mod.Render_objects_ui(spriteBatch);
+        }
+    }
+
+    public static void RenderModsUI(ShapeRenderer shapeRenderer){
+        for (Mod mod : LOADED_MODS.values()){
+            mod.Render_shapes_ui(shapeRenderer);
+        }
+    }
+
+    public static void RenderModsDebug(SpriteBatch spriteBatch){
+        for (Mod mod :LOADED_MODS.values()){
+            mod.Render_debug_objects(spriteBatch);
+        }
+    }
+
+    public static void RenderModsDebug(ShapeRenderer shapeRenderer){
+        for (Mod mod :LOADED_MODS.values()){
+            mod.Render_debug_shapes(shapeRenderer);
+        }
+    }
+
+    public static void RenderModsDebugUI(SpriteBatch spriteBatch){
+        for (Mod mod :LOADED_MODS.values()){
+            mod.Render_debug_objects_ui(spriteBatch);
+        }
+    }
+
+    public static void RenderModsDebugUI(ShapeRenderer shapeRenderer){
+        for (Mod mod :LOADED_MODS.values()){
+            mod.Render_debug_shapes_ui(shapeRenderer);
+        }
+    }
     public static void UpdateMods(float Delta_time){
         for (Mod mod : LOADED_MODS.values()){
             mod.Update(Delta_time);

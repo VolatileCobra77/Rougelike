@@ -12,6 +12,8 @@ import java.util.List;
 
 public class DefaultTextures extends Mod {
 
+
+
     @Override
     public String getName() {
         return "ca.volatilecobra.Rougelike.Mods.DefaultTextures";
@@ -19,15 +21,15 @@ public class DefaultTextures extends Mod {
     private int c = 0;
     @Override
     public void onLoad() {
-        Tile wall_top = new Tile("wall_top", new Texture("tiles/wall/top.png"));
-        Tile wall_bottom = new Tile("wall_bottom", new Texture("tiles/wall/bottom.png"));
-        Tile wall_corner_dl = new Tile("wall_corner_dl", new Texture("tiles/wall/corner/dl.png"));
-        Tile wall_corner_dr = new Tile("wall_corner_dr", new Texture("tiles/wall/corner/dr.png"));
-        Tile wall_corner_ul = new Tile("wall_corner_ul", new Texture("tiles/wall/corner/ul.png"));
-        Tile wall_corner_ur = new Tile("wall_corner_ur", new Texture("tiles/wall/corner/ur.png"));
-        Tile wall_vertical = new Tile("wall_vertical", new Texture("tiles/wall/vertical/wall.png"));
-        Tile wall_vertical_t = new Tile("wall_vertical_t", new Texture("tiles/wall/vertical/t.png"));
-        Tile wall_vertical_end = new Tile("wall_vertical_end", new Texture("tiles/wall/vertical/end.png"));
+        Tile wall_top = new Tile("wall_top", new Texture("tiles/wall/top.png"), true);
+        Tile wall_bottom = new Tile("wall_bottom", new Texture("tiles/wall/bottom.png"), true);
+        Tile wall_corner_dl = new Tile("wall_corner_dl", new Texture("tiles/wall/corner/dl.png"), true);
+        Tile wall_corner_dr = new Tile("wall_corner_dr", new Texture("tiles/wall/corner/dr.png"), true);
+        Tile wall_corner_ul = new Tile("wall_corner_ul", new Texture("tiles/wall/corner/ul.png"), true);
+        Tile wall_corner_ur = new Tile("wall_corner_ur", new Texture("tiles/wall/corner/ur.png"), true);
+        Tile wall_vertical = new Tile("wall_vertical", new Texture("tiles/wall/vertical/wall.png"), true);
+        Tile wall_vertical_t = new Tile("wall_vertical_t", new Texture("tiles/wall/vertical/t.png"), true);
+        Tile wall_vertical_end = new Tile("wall_vertical_end", new Texture("tiles/wall/vertical/end.png"), true);
 
         Tile floor_regular = new Tile("floor_regular", new Texture("tiles/floor/regular.png"));
         Tile floor_spikes = new Tile("floor_spikes", new Texture("tiles/floor/spikes/dormant.png"));
@@ -35,57 +37,10 @@ public class DefaultTextures extends Mod {
         Tile void_tile = new Tile("void", new Texture("tiles/void.png"));
         Tile void_from_wall = new Tile("void_from_wall", new Texture("tiles/void_from_wall.png"));
 
-        List<Room> rooms = new ArrayList<>();
 
-        Vector2 size = new Vector2(5, 5);
-
-        // Room 1: Simple square room
-        Room squareRoom = new Room("square", size, new Vector2(0, 0));
-        fill(squareRoom.tiles, floor_regular, squareRoom.location);
-        border(squareRoom.tiles, wall_vertical, wall_top, wall_bottom, wall_corner_ul, wall_corner_ur, wall_corner_dl, wall_corner_dr, squareRoom.location);
-
-        squareRoom.setExits(
-            List.of(new Vector2(2, 4)),  // up
-            List.of(new Vector2(2, 0)),  // down
-            List.of(new Vector2(0, 2)),  // left
-            List.of(new Vector2(4, 2))   // right
-        );
-
-        rooms.add(squareRoom);
-
-        // Room 2: Spike pit
-        Room spikeRoom = new Room("spike", size, new Vector2(0, 0));
-        fill(spikeRoom.tiles, floor_spikes, spikeRoom.location);
-        border(spikeRoom.tiles, wall_vertical, wall_top, wall_bottom, wall_corner_ul, wall_corner_ur, wall_corner_dl, wall_corner_dr, spikeRoom.location);
-        spikeRoom.setExits(
-            List.of(new Vector2(2, 4)),
-            List.of(new Vector2(2, 0)),
-            List.of(new Vector2(0, 2)),
-            List.of(new Vector2(4, 2))
-        );
-
-        rooms.add(spikeRoom);
-
-        // Room 3: Dead-end room (only connects down)
-
-
-        // Room 4: Crossroad room (T-shaped)
-        Room tRoom = new Room("t_room", size, new Vector2(0, 0));
-        fill(tRoom.tiles, floor_regular, tRoom.location);
-        border(tRoom.tiles, wall_vertical, wall_top, wall_bottom, wall_corner_ul, wall_corner_ur, wall_corner_dl, wall_corner_dr, tRoom.location);
-        tRoom.setExits(
-            List.of(new Vector2(2, 4)),
-            List.of(new Vector2(2, 0)),
-            List.of(new Vector2(0, 2)),
-            List.of(new Vector2(4, 2))
-        );
-
-        rooms.add(tRoom);
-
-        // Link allowed neighbors manually
-        squareRoom.setAllowedNeighbours(List.of(tRoom, squareRoom, spikeRoom), List.of(spikeRoom, tRoom,squareRoom), List.of(tRoom,spikeRoom,squareRoom), List.of(tRoom,spikeRoom,squareRoom));
-        spikeRoom.setAllowedNeighbours(List.of(tRoom, squareRoom, spikeRoom), List.of(spikeRoom, tRoom,squareRoom), List.of(tRoom,spikeRoom,squareRoom), List.of(tRoom,spikeRoom,squareRoom));
-        tRoom.setAllowedNeighbours(List.of(tRoom, squareRoom, spikeRoom), List.of(spikeRoom, tRoom,squareRoom), List.of(tRoom,spikeRoom,squareRoom), List.of(tRoom,spikeRoom,squareRoom));
+        Room square = new Room("square", new Vector2(20,20), new Vector2(0,0));
+        fill(square.tiles, floor_regular,square.location);
+        border(square.tiles, wall_vertical, wall_top, wall_bottom, wall_corner_ul, wall_corner_ur,wall_corner_dl, wall_corner_dr);
 
 
 //        List<Tile> all_tiles = new ArrayList<Tile>(Tile.TILES.values());
@@ -121,23 +76,38 @@ public class DefaultTextures extends Mod {
 
 
     private void border(Tile[][] tiles, Tile vertical, Tile top, Tile bottom,
-                               Tile ul, Tile ur, Tile dl, Tile dr, Vector2 roomPosition) {
+                               Tile ul, Tile ur, Tile dl, Tile dr) {
         int w = tiles.length;
         int h = tiles[0].length;
 
         for (int x = 1; x < w - 1; x++) {
+            // Top edge: bottom at h-1, top above it at h-2
             tiles[x][h - 1] = new Tile(top.name + c, top._tex);
             tiles[x][h - 1]._world_pos = new Vector2(
-                 + x * Tile.tile_size,
-                 + (h - 1) * Tile.tile_size);
+                x * Tile.tile_size,
+                (h - 1) * Tile.tile_size);
             c++;
 
+            tiles[x][h - 2] = new Tile(bottom.name + c, bottom._tex);
+            tiles[x][h - 2]._world_pos = new Vector2(
+                x * Tile.tile_size,
+                (h - 2) * Tile.tile_size);
+            c++;
+
+            // Bottom edge: bottom at 0, top above it at 1
             tiles[x][0] = new Tile(bottom.name + c, bottom._tex);
             tiles[x][0]._world_pos = new Vector2(
                 x * Tile.tile_size,
                 0);
             c++;
+
+            tiles[x][1] = new Tile(top.name + c, top._tex);
+            tiles[x][1]._world_pos = new Vector2(
+                x * Tile.tile_size,
+                Tile.tile_size);
+            c++;
         }
+
 
         for (int y = 1; y < h - 1; y++) {
             tiles[0][y] = new Tile(vertical.name + c, vertical._tex);
@@ -165,16 +135,29 @@ public class DefaultTextures extends Mod {
              + (h - 1) * Tile.tile_size);
         c++;
 
-        tiles[0][0] = new Tile(dl.name + c, dl._tex);
-        tiles[0][0]._world_pos = new Vector2(
+        tiles[0][1] = new Tile(dl.name + c, dl._tex);
+        tiles[0][1]._world_pos = new Vector2(
               0,
-              0);
+              Tile.tile_size);
         c++;
 
-        tiles[w - 1][0] = new Tile(dr.name + c, dr._tex);
-        tiles[w - 1][0]._world_pos = new Vector2(
+        tiles[w - 1][1] = new Tile(dr.name + c, dr._tex);
+        tiles[w - 1][1]._world_pos = new Vector2(
             (w - 1) * Tile.tile_size,
+            Tile.tile_size);
+        c++;
+
+        tiles[w-1][0] = new Tile(bottom.name + c, bottom._tex);
+        tiles[w-1][0]._world_pos = new Vector2(
+            (w-1) * Tile.tile_size,
             0);
+        c++;
+
+        tiles[0][0] = new Tile(bottom.name + c, bottom._tex);
+        tiles[0][0]._world_pos = new Vector2(
+            0,
+            0);
+
     }
 
 
@@ -187,6 +170,36 @@ public class DefaultTextures extends Mod {
 
     @Override
     public void Render_objects(SpriteBatch spriteBatch) {
+
+    }
+
+    @Override
+    void Render_shapes_ui(ShapeRenderer shapeRenderer) {
+
+    }
+
+    @Override
+    void Render_objects_ui(SpriteBatch spriteBatch) {
+
+    }
+
+    @Override
+    void Render_debug_objects(SpriteBatch spriteBatch) {
+
+    }
+
+    @Override
+    void Render_debug_shapes(ShapeRenderer shapeRenderer) {
+
+    }
+
+    @Override
+    void Render_debug_objects_ui(SpriteBatch spriteBatch) {
+
+    }
+
+    @Override
+    void Render_debug_shapes_ui(ShapeRenderer shapeRenderer) {
 
     }
 

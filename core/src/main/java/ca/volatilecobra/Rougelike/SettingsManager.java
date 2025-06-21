@@ -30,6 +30,8 @@ public class SettingsManager {
         public List<Integer> backward = Arrays.asList(Keys.S, Keys.DOWN);
         public List<Integer> left = Arrays.asList(Keys.A, Keys.LEFT);
         public List<Integer> right = Arrays.asList(Keys.D, Keys.RIGHT);
+        public List<Integer> zoom_in = List.of(Keys.Z);
+        public List<Integer> zoom_out = List.of(Keys.X);
     }
 
     private SettingsManager() {}
