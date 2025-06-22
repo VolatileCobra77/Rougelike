@@ -37,7 +37,7 @@ public class Tile {
         this._tex = tex;
         this._world_pos = new Vector2();
 
-        if (TILES.containsKey(name)) {
+        while(TILES.containsKey(this.name)){
             this.name += ".";
         }
 
@@ -49,7 +49,7 @@ public class Tile {
         this._tex = tex;
         this._world_pos = new Vector2();
 
-        if (TILES.containsKey(name)) {
+        while(TILES.containsKey(this.name)){
             this.name += ".";
         }
 
@@ -109,7 +109,7 @@ public class Tile {
     }
 
     public Tile copy(int index){
-        Tile t =new Tile(this.name + index, this._tex);
+        Tile t =new Tile(this.name + index, this._tex, this.collides);
         t.allowed_up = this.allowed_up;
         t.allowed_down = this.allowed_down;
         t.allowed_left = this.allowed_left;

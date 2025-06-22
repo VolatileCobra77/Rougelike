@@ -18,6 +18,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.ScreenUtils;
 import net.bytebuddy.agent.builder.AgentBuilder;
 
@@ -66,8 +67,17 @@ public class Main extends ApplicationAdapter {
             System.out.println("Debug status: " + GlobalVariables.DEBUG_ENABLED);
         }
 
-
         localPlayer.setDesiredDirection(inputDir);
+
+        if (GlobalVariables.DEBUG_ENABLED && Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
+            int mouseX = Gdx.input.getX();
+            int mouseY = Gdx.input.getY();
+
+            // Convert from screen coordinates to world coordinates (optional, see below)
+            Vector3 worldPos = cam.unproject(new Vector3(mouseX, mouseY, 0));
+
+            localPlayer.set_pos(new Vector2(worldPos.x, worldPos.y));
+        }
     }
 
     private void draw_debug(SpriteBatch batch){
@@ -75,14 +85,16 @@ public class Main extends ApplicationAdapter {
     }
     private void draw_debug(ShapeRenderer shapeRenderer){
         Modloader.RenderModsDebug(shapeRenderer);
+        world.draw_debug(shapeRenderer);
+        Entity.draw_debug_all(shapeRenderer, null);
     }
     private void draw_debug_ui(ShapeRenderer shapeRenderer){
         Modloader.RenderModsDebugUI(shapeRenderer);
     }
     private void draw_debug_ui(SpriteBatch batch){
         font.draw(batch, "FPS: " + Gdx.graphics.getFramesPerSecond() , 10, Gdx.graphics.getHeight() - 10);
-        font.draw(batch, "Frametime: " + Gdx.graphics.getDeltaTime() , 10, Gdx.graphics.getHeight() - 20);
-        font.draw(batch, "World Pos: " + localPlayer.get_pos(), 10, Gdx.graphics.getHeight() - 30);
+        font.draw(batch, "Frametime: " + Gdx.graphics.getDeltaTime() , 10, Gdx.graphics.getHeight() - 30);
+        font.draw(batch, "World Pos: " + localPlayer.get_pos(), 10, Gdx.graphics.getHeight() - 50);
         Modloader.RenderModsDebugUI(batch);
     }
 
@@ -95,7 +107,8 @@ public class Main extends ApplicationAdapter {
         Modloader.UpdateMods(delta);
         ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
         _process_keyboard_inputs();
-        Entity.update_all(delta);
+
+        Entity.update_all(delta, world);
         cam.position.set(localPlayer.get_pos().x + localPlayer.get_size().x /2, localPlayer.get_pos().y + localPlayer.get_size().y /2, 0);
         cam.update();
 
@@ -104,10 +117,13 @@ public class Main extends ApplicationAdapter {
         batch.setProjectionMatrix(cam.combined);
         shape_renderer.setProjectionMatrix(cam.combined);
         batch.begin();
-        Entity.Render_all(batch);
-        Modloader.RenderMods(batch);
+
+
         world.render(batch);
         if (GlobalVariables.DEBUG_ENABLED) draw_debug(batch);
+        Entity.Render_all(batch);
+        Modloader.RenderMods(batch);
+
         batch.end();
         shape_renderer.begin(ShapeRenderer.ShapeType.Filled);
         Entity.Render_all(shape_renderer);

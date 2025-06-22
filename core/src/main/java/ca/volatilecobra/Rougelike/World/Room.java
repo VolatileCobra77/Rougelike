@@ -3,6 +3,7 @@ package ca.volatilecobra.Rougelike.World;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,10 +20,10 @@ public class Room {
     public List<Room> allowed_left;
     public List<Room> allowed_right;
 
-    public List<Vector2> up_exits;
-    public List<Vector2> down_exits;
-    public List<Vector2> left_exits;
-    public List<Vector2> right_exits;
+    public List<Vector2> up_exits = new ArrayList<Vector2>();
+    public List<Vector2> down_exits = new ArrayList<Vector2>();
+    public List<Vector2> left_exits = new ArrayList<Vector2>();
+    public List<Vector2> right_exits = new ArrayList<Vector2>();
 
     public static Map<String, Room> ROOMS = new HashMap<>();
 
@@ -32,9 +33,7 @@ public class Room {
         this.location = location;
         this.tiles = new Tile[(int) size.x][(int) size.y];
 
-        if (ROOMS.containsKey(name)) {
-            throw new IllegalStateException("Duplicate room found");
-        }
+
 
         ROOMS.put(name, this);
     }
@@ -56,8 +55,8 @@ public class Room {
     public void update_tile_pos(){
         for (int x = 0; x < tiles.length; x++) {
             for (int y = 0; y < tiles[x].length; y++) {
-                tiles[x][y]._world_pos.x += this.location.x;
-                tiles[x][y]._world_pos.y += this.location.y;
+                tiles[x][y]._world_pos.x += this.location.x*Tile.tile_size;
+                tiles[x][y]._world_pos.y += this.location.y*Tile.tile_size;
             }
         }
     }
@@ -78,7 +77,7 @@ public class Room {
             for (int y = 0; y < tiles[x].length; y++) {
                 Tile original = tiles[x][y];
                 if (original != null) {
-                    Tile copy = new Tile(original.name, original._tex);
+                    Tile copy = original.copy(0);
                     copy._world_pos = new Vector2(original._world_pos); // copy position
                     r.tiles[x][y] = copy;
                 }
@@ -92,10 +91,12 @@ public class Room {
     public void render(SpriteBatch spritebatch) {
         for (int y = 0; y < tiles.length; y++) {
             for (int x = 0; x < tiles[y].length; x++) {
-                if (tiles[x][y] != null){
-                    tiles[x][y].render(spritebatch);
+                if (tiles[y][x] != null) {
+                    tiles[y][x].render(spritebatch);
                 }
             }
         }
     }
+
+
 }

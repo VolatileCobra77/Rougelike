@@ -1,39 +1,59 @@
 package ca.volatilecobra.Rougelike.Entities;
 
+import ca.volatilecobra.Rougelike.Utils.Animation.Animator;
+import ca.volatilecobra.Rougelike.World.Tile;
+import ca.volatilecobra.Rougelike.World.WorldManager;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 
-import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class Entity {
 
-    private String _id = "";
-    private Vector2 _pos = new Vector2(0,0);
-    private Vector2 _size = new Vector2(0,0);
-    private float _rot = 0;
-    private Texture _tex;
-    private Vector2 _velocity = new Vector2(0,0);
+    String _id = "";
+    Vector2 _pos = new Vector2(0,0);
+    Vector2 _size = new Vector2(0,0);
+    float _rot = 0;
+    Texture _tex;
+    boolean isAnimated = false;
+    public Animator animator = null;
+    Vector2 _velocity = new Vector2(0,0);
     public Color _fallback_color = new Color(1,0,0,1);
+
+
 
     public static Map<String, Entity> ENTITIES = new HashMap<>();
 
 
-    private Vector2 _desiredDirection = new Vector2(0,0); // Normalized input or path direction
+    Vector2 _desiredDirection = new Vector2(0,0); // Normalized input or path direction
 
-    private final float _acceleration = 600f;   // units per second^2
-    private final float _deceleration = 400f;   // units per second^2
-    private final float _maxVelocity = 300f;    // units per second
+    final float _acceleration = 600f;   // units per second^2
+    final float _deceleration = 400f;   // units per second^2
+    final float _maxVelocity = 300f;    // units per second
 
     // Call this every frame to update movement
-    public void update(float delta) {
+    public void update(float delta, WorldManager worldManager) {
         Vector2 accelerationVector = new Vector2(_desiredDirection).scl(_acceleration * delta);
+
+        if (_tex != null){
+            _size.x = _tex.getWidth();
+            //for an overlap to simulate it being semi orthographic, we subtract a small fixed amount
+            _size.y = _tex.getHeight()-5;
+        } else if (isAnimated) {
+
+            _size.x = animator.getCurrentFrame().getHeight();
+
+            //for an overlap to simulate being semi orthographic, we subtract a small fixed amount
+            _size.y = animator.getCurrentFrame().getHeight() - 5;
+
+        }
+
+        animator.update(delta);
 
         // If there's no desired movement, decelerate
         if (_desiredDirection.isZero(0.01f)) {
@@ -47,9 +67,106 @@ public class Entity {
             _velocity.setLength(_maxVelocity);
         }
 
-        // Move the entity
-        _pos.add(new Vector2(_velocity).scl(delta));
+        // Predict movement separately on each axis
+        Vector2 proposedMove = new Vector2(_velocity).scl(delta);
+
+        // Try X movement
+        if (!willCollideAt(_pos.x + proposedMove.x, _pos.y, worldManager)) {
+            _pos.x += proposedMove.x;
+        } else {
+            _velocity.x = 0; // stop horizontal movement if blocked
+        }
+
+        // Try Y movement
+        if (!willCollideAt(_pos.x, _pos.y + proposedMove.y, worldManager)) {
+            _pos.y += proposedMove.y;
+        } else {
+            _velocity.y = 0; // stop vertical movement if blocked
+        }
+
+
+        if (willCollideAt(_pos.x, _pos.y, worldManager)){
+            Vector2 safeSpot = findNearestSafeSpot(_pos, 64, worldManager); // max search range in pixels
+
+            if (safeSpot != null) {
+                _pos.set(safeSpot);
+                _velocity.setZero(); // stop momentum
+            } else {
+                System.out.println("No safe spot found for entity " + _id);
+            }
+        }
     }
+
+    private Vector2 findNearestSafeSpot(Vector2 startPos, int maxDistance, WorldManager worldManager) {
+        int step = 4; // pixels per search step
+        for (int radius = step; radius <= maxDistance; radius += step) {
+            for (int dx = -radius; dx <= radius; dx += step) {
+                for (int dy = -radius; dy <= radius; dy += step) {
+                    if (Math.abs(dx) != radius && Math.abs(dy) != radius) continue; // Only check perimeter
+
+                    float newX = startPos.x + dx;
+                    float newY = startPos.y + dy;
+
+                    if (!willCollideAt(newX, newY, worldManager)) {
+                        return new Vector2(newX, newY);
+                    }
+                }
+            }
+        }
+
+        return null; // No safe spot found within maxDistance
+    }
+    public void draw_debug(ShapeRenderer shapeRenderer, SpriteBatch spriteBatch){
+        shapeRenderer.setColor(1,1,0,1);
+        shapeRenderer.rect(_pos.x, _pos.y, _size.x,_size.y);
+    }
+
+    public static void draw_debug_all(ShapeRenderer shapeRenderer, SpriteBatch spriteBatch){
+        for (Entity entity: ENTITIES.values()){
+            entity.draw_debug(shapeRenderer, spriteBatch);
+        }
+    }
+
+    private boolean willCollideAt(float x, float y, WorldManager worldManager) {
+        float width = _size.x;
+        float height = _size.y;
+
+        // Check tile collisions
+        int minTileX = (int)Math.floor(x / 16);
+        int maxTileX = (int)Math.floor((x + width - 1) / 16);
+        int minTileY = (int)Math.floor(y / 16);
+        int maxTileY = (int)Math.floor((y + height - 1) / 16);
+
+        for (int tx = minTileX; tx <= maxTileX; tx++) {
+            for (int ty = minTileY; ty <= maxTileY; ty++) {
+                Tile tile = worldManager.getTileAt(new Vector2(tx, ty));
+                if (tile != null && tile.collides) {
+                    return true;
+                }
+            }
+        }
+
+        // Check collisions with other entities
+        for (Entity other : ENTITIES.values()) {
+            if (other == this) continue;
+
+            Vector2 otherPos = other._pos;
+            if (rectsOverlap(x, y, width, height, otherPos.x, otherPos.y, other._size.x, other._size.y)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean rectsOverlap(float x1, float y1, float w1, float h1,
+                                 float x2, float y2, float w2, float h2) {
+        return x1 < x2 + w2 &&
+            x1 + w1 > x2 &&
+            y1 < y2 + h2 &&
+            y1 + h1 > y2;
+    }
+
 
     // Sets the desired movement direction (should be normalized or will auto-normalize)
     public void setDesiredDirection(Vector2 direction) {
@@ -61,7 +178,7 @@ public class Entity {
     }
 
     // Decelerate when no input is given
-    private void applyDeceleration(float delta) {
+    void applyDeceleration(float delta) {
         if (_velocity.isZero(0.01f)) return;
 
         float decelAmount = _deceleration * delta;
@@ -74,11 +191,12 @@ public class Entity {
         }
     }
 
-    public static void update_all(float deltatime){
+    public static void update_all(float deltatime, WorldManager worldManager){
         for (Entity entity : ENTITIES.values()){
-            entity.update(deltatime);
+            entity.update(deltatime, worldManager);
         }
     }
+
 
     // Getters for movement properties
     public float getAcceleration() {
@@ -103,14 +221,14 @@ public class Entity {
 
     public static void Render_all(SpriteBatch sprite_batch){
         for (Entity entity : ENTITIES.values()){
-            if (entity.has_texture()){
+            if (entity.has_texture() || entity.isAnimated){
                 entity.Render(sprite_batch);
             }
         }
     }
     public static void Render_all(ShapeRenderer shape_renderer){
         for (Entity entity : ENTITIES.values()){
-            if (!entity.has_texture()){
+            if (!entity.has_texture() && !entity.isAnimated){
                 entity.Render(null, shape_renderer);
             }
         }
@@ -154,10 +272,40 @@ public class Entity {
         ENTITIES.put(_id, this);
     }
 
+    public Entity(String id, Vector2 start_pos, Vector2 size, float start_rot, Animator animator){
+        _id = id;
+        _pos = start_pos;
+        _size = size;
+        _rot = start_rot;
+        _tex = null;
+        isAnimated = true;
+        this.animator = animator;
+        ENTITIES.put(_id, this);
+    }
+
+    public Entity(String id, Vector2 start_pos, Vector2 size, float start_rot, boolean isAnimated){
+        _id = id;
+        _pos = start_pos;
+        _size = size;
+        _rot = start_rot;
+        _tex = null;
+        this.isAnimated = isAnimated;
+        if (isAnimated){
+            this.animator = new Animator();
+        }
+        ENTITIES.put(_id, this);
+    }
+
     public void Render(SpriteBatch sprite_batch){
+        if (isAnimated){
+            animator.draw(sprite_batch, _pos);
+            return;
+        }
         if (_tex == null){
             throw new IllegalStateException("_tex was not defined, either pass in a shape renderer to the render function or specify a texture in the constructor");
         }
+
+
         sprite_batch.draw(_tex, _pos.x, _pos.y);
     }
     public void Render(SpriteBatch sprite_batch, ShapeRenderer shape_renderer){
@@ -215,5 +363,8 @@ public class Entity {
     }
     public boolean has_texture(){
         return _tex!=null;
+    }
+    public boolean has_anim(){
+        return isAnimated;
     }
 }
