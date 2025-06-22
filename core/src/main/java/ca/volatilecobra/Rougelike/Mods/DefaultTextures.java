@@ -70,7 +70,7 @@ public class DefaultTextures extends Mod {
 
         t_junc.left_exits.add(new Vector2(0,5));
         t_junc.right_exits.add(new Vector2(10,5));
-        t_junc.down_exits.add(new Vector2(5,0));
+        t_junc.down_exits.add(new Vector2(4,0));
 
         //rotate 90deg to the right because its flipped when rendered for some reason, idk im just doing this because im too lazy to find annother way that does not require this
 
@@ -153,13 +153,24 @@ public class DefaultTextures extends Mod {
                 if (x == 0 && y >= 3 && y <= 5) {
                     // leave space for exit on left side at y=3..5
                     largeLeft.tiles[x][y] = floor_regular.copy(0);
+                    largeLeft.tiles[x][y]._world_pos = new Vector2(x,y);
                 } else if (x == 0 || x == 11 || y == 0 || y == 9) {
                     // border walls - just a simple wall_vertical or wall_top/bottom on edges
-                    if (y == 0) largeLeft.tiles[x][y] = wall_bottom.copy(0);
-                    else if (y == 9) largeLeft.tiles[x][y] = wall_top.copy(0);
-                    else largeLeft.tiles[x][y] = wall_vertical.copy(0);
+                    if (y == 0) {
+                        largeLeft.tiles[x][y] = wall_bottom.copy(0);
+                        largeLeft.tiles[x][y]._world_pos = new Vector2(x,y);
+                    }
+                    else if (y == 9) {
+                        largeLeft.tiles[x][y] = wall_top.copy(0);
+                        largeLeft.tiles[x][y]._world_pos = new Vector2(x,y);
+                    }
+                    else {
+                        largeLeft.tiles[x][y] = wall_vertical.copy(0);
+                        largeLeft.tiles[x][y]._world_pos = new Vector2(x,y);
+                    }
                 } else {
                     largeLeft.tiles[x][y] = floor_regular.copy(0);
+                    largeLeft.tiles[x][y]._world_pos = new Vector2(x,y);
                 }
             }
         }

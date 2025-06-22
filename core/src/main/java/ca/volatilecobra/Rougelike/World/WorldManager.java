@@ -51,7 +51,7 @@ public class WorldManager {
         selected.update_tile_pos();
         for (int j = 0; j < selected.size.x; j++) {
             for (int k = 0; k < selected.size.y; k++) {
-                occupied.add(new Vector2(j,k));
+                occupied.add(new Vector2((selected.location.x + j),(selected.location.y + k)));
             }
         }
         rooms.add(selected);
@@ -152,13 +152,13 @@ public class WorldManager {
             List<Vector2> checkedTiles = new ArrayList<>();
             for (int j = 0; j < next.size.x; j++) {
                 for (int k = 0; k < next.size.y; k++) {
-                    if (occupied.contains(new Vector2(j,k))){
+                    if (occupied.contains(new Vector2((next.location.x + j),(next.location.y + k)))){
                       Room.ROOMS.remove(next.name);
                       attemptedRooms.add(room_selected);
                       i = Math.max(lastSuccessful, i-1);
                       continue;
                     };
-                    checkedTiles.add(new Vector2(j,k));
+                    checkedTiles.add(new Vector2((next.location.x + j),(next.location.y + k)));
                 }
             }
 
