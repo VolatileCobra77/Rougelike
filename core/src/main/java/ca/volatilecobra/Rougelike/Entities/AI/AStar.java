@@ -25,11 +25,10 @@ public class AStar {
         Node startNode = new Node(start, null, target);
         openSet.add(startNode);
         while (!openSet.isEmpty()) {
-            iterations ++;
-            if (iterations  >= maxIterations){
-                System.out.println("Search aborted, too many itterations.");
-                return new ArrayList<Vector2>();
-            }
+//            iterations ++;
+//            if (iterations  >= maxIterations){
+//                return new ArrayList<Vector2>();
+//            }
 
             Node nextNode = openSet.poll();
             closedSet.add(nextNode);
@@ -40,7 +39,6 @@ public class AStar {
                     outputList.add(current.position);
                     current = current.parent;
                 }
-                System.out.println("PATH: " + outputList);
                 Collections.reverse(outputList);
                 return outputList;
 
@@ -48,14 +46,14 @@ public class AStar {
 
 
             int[][] directions = new int[][] {
-                { 10,  0}, // right
-                {-10,  0}, // left
-                {  0, 10}, // up
-                {  0,-10}, // down
-                { 10, 10}, // up-right
-                {-10, 10}, // up-left
-                { 10,-10}, // down-right
-                {-10,-10}  // down-left
+                { 8,  0}, // right
+                {-8,  0}, // left
+                {  0, 8}, // up
+                {  0,-8}, // down
+//                { 8, 8}, // up-right
+//                {-8, 8}, // up-left
+//                { 8,-8}, // down-right
+//                {-8,-8}  // down-left
             };
 
             for (int[] dir : directions) {
@@ -74,7 +72,6 @@ public class AStar {
             }
 
         }
-        System.out.println("List exhausted, aborting");
         isDone = true;
         return new ArrayList<Vector2>();
 

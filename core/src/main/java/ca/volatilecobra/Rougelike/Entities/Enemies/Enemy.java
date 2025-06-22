@@ -1,6 +1,7 @@
-package ca.volatilecobra.Rougelike.Entities;
+package ca.volatilecobra.Rougelike.Entities.Enemies;
 
 import ca.volatilecobra.Rougelike.Entities.AI.Brain;
+import ca.volatilecobra.Rougelike.Entities.Entity;
 import ca.volatilecobra.Rougelike.World.WorldManager;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -19,6 +20,7 @@ public class Enemy extends Entity {
     }
     @Override
     public void update(float delta, WorldManager worldManager){
+
         brain.update(delta, worldManager);
         brain.update_target(Entity.Get_from_id("player"));
         super.update(delta, worldManager);

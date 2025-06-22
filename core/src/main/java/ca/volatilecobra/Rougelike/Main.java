@@ -1,6 +1,6 @@
 package ca.volatilecobra.Rougelike;
 
-import ca.volatilecobra.Rougelike.Entities.Enemy;
+import ca.volatilecobra.Rougelike.Entities.Enemies.Enemy;
 import ca.volatilecobra.Rougelike.Entities.Entity;
 import ca.volatilecobra.Rougelike.Entities.Player;
 import ca.volatilecobra.Rougelike.Mods.DefaultTextures;
@@ -10,20 +10,15 @@ import ca.volatilecobra.SettingsManager;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.ScreenUtils;
-import net.bytebuddy.agent.builder.AgentBuilder;
-
-import java.util.List;
 
 import static ca.volatilecobra.Rougelike.Entities.Entity.ENTITIES;
 
@@ -52,8 +47,9 @@ public class Main extends ApplicationAdapter {
         world = new WorldManager(10);
         GlobalVariables.CAMERA = cam;
         cam.setToOrtho(false, Gdx.graphics.getWidth(),  Gdx.graphics.getHeight());
-        new Enemy("enemy_1", new Vector2(-10,-10)).brain.update_target(localPlayer);
-
+        for (int i = 0; i < 5; i++) {
+            new Enemy("enemy_" + i, new Vector2(-10 - i*8,-10)).brain.update_target(localPlayer);
+        }
 
     }
 
