@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,9 +33,11 @@ public class Entity {
 
     Vector2 _desiredDirection = new Vector2(0,0); // Normalized input or path direction
 
-    final float _acceleration = 600f;   // units per second^2
-    final float _deceleration = 400f;   // units per second^2
-    final float _maxVelocity = 300f;    // units per second
+    float _acceleration = 600f;   // units per second^2
+    float _deceleration = 400f;   // units per second^2
+    float _maxVelocity = 300f;    // units per second
+
+
 
     // Call this every frame to update movement
     public void update(float delta, WorldManager worldManager) {
@@ -50,10 +53,11 @@ public class Entity {
 
             //for an overlap to simulate being semi orthographic, we subtract a small fixed amount
             _size.y = animator.getCurrentFrame().getHeight() - 5;
+            animator.update(delta);
 
         }
 
-        animator.update(delta);
+
 
         // If there's no desired movement, decelerate
         if (_desiredDirection.isZero(0.01f)) {
@@ -132,10 +136,10 @@ public class Entity {
         float height = _size.y;
 
         // Check tile collisions
-        int minTileX = (int)Math.floor(x / 16);
-        int maxTileX = (int)Math.floor((x + width - 1) / 16);
-        int minTileY = (int)Math.floor(y / 16);
-        int maxTileY = (int)Math.floor((y + height - 1) / 16);
+        int minTileX = (int)Math.floor(x / Tile.tile_size);
+        int maxTileX = (int)Math.floor((x + width - 1) / Tile.tile_size);
+        int minTileY = (int)Math.floor(y / Tile.tile_size);
+        int maxTileY = (int)Math.floor((y + height - 1) / Tile.tile_size);
 
         for (int tx = minTileX; tx <= maxTileX; tx++) {
             for (int ty = minTileY; ty <= maxTileY; ty++) {
@@ -263,6 +267,15 @@ public class Entity {
         ENTITIES.put(_id, this);
     }
 
+    public Entity(String id, Vector2 start_pos, Vector2 size, float start_rot) {
+        _id = id;
+        _pos = start_pos;
+        _size = size;
+        _rot = start_rot;
+        _tex = null;
+        ENTITIES.put(_id, this);
+    }
+
     public Entity(String id, Vector2 start_pos, Vector2 size, float start_rot, Texture texture){
         _id = id;
         _pos = start_pos;
@@ -367,4 +380,29 @@ public class Entity {
     public boolean has_anim(){
         return isAnimated;
     }
+
+    public void dispose(){
+        if (_tex != null){
+            _tex.dispose();
+        }
+        if (animator != null){
+            animator.dispose();
+        }
+    }
+
+    public static <T> List<T> getAllSubclass(Class<T> type) {
+        List<T> returnList = new ArrayList<>();
+        for (Entity entity : ENTITIES.values()) {
+            if (type.isInstance(entity)) {
+                returnList.add(type.cast(entity));
+            }
+        }
+        return returnList;
+    }
+    public static void Dispose_all(){
+        for (Entity entity : ENTITIES.values()){
+            entity.dispose();
+        }
+    }
+
 }

@@ -1,5 +1,6 @@
 package ca.volatilecobra.Rougelike;
 
+import ca.volatilecobra.Rougelike.Entities.Enemy;
 import ca.volatilecobra.Rougelike.Entities.Entity;
 import ca.volatilecobra.Rougelike.Entities.Player;
 import ca.volatilecobra.Rougelike.Mods.DefaultTextures;
@@ -21,6 +22,8 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.ScreenUtils;
 import net.bytebuddy.agent.builder.AgentBuilder;
+
+import java.util.List;
 
 import static ca.volatilecobra.Rougelike.Entities.Entity.ENTITIES;
 
@@ -49,6 +52,7 @@ public class Main extends ApplicationAdapter {
         world = new WorldManager(10);
         GlobalVariables.CAMERA = cam;
         cam.setToOrtho(false, Gdx.graphics.getWidth(),  Gdx.graphics.getHeight());
+        new Enemy("enemy_1", new Vector2(-10,-10)).brain.update_target(localPlayer);
 
 
     }
@@ -148,5 +152,6 @@ public class Main extends ApplicationAdapter {
         batch.dispose();
 
         shape_renderer.dispose();
+        Entity.Dispose_all();
     }
 }

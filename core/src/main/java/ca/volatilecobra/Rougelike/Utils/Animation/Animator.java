@@ -58,4 +58,10 @@ public class Animator {
     public String getCurrent() {
         return current;
     }
+
+    public void dispose(){
+        for (Animation animation : animations.values()){
+            animation.dispose();
+        }
+    }
 }

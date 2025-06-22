@@ -12,4 +12,9 @@ public class Animation {
         num_frames = frames.length;
         this.frametime = frametime;
     }
+    public void dispose(){
+        for (Texture tex : frames){
+            tex.dispose();
+        }
+    }
 }
