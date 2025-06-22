@@ -53,16 +53,16 @@ public class Main extends ApplicationAdapter {
 
     }
 
-    private void _process_keyboard_inputs(){
+    private void _process_keyboard_inputs(float delta){
         Vector2 inputDir = new Vector2();
 
         if (SettingsManager.get().controls.forward.stream().anyMatch(Gdx.input::isKeyPressed)) inputDir.y += 1;
         if (SettingsManager.get().controls.backward.stream().anyMatch(Gdx.input::isKeyPressed)) inputDir.y -= 1;
         if (SettingsManager.get().controls.left.stream().anyMatch(Gdx.input::isKeyPressed)) inputDir.x -= 1;
         if (SettingsManager.get().controls.right.stream().anyMatch(Gdx.input::isKeyPressed)) inputDir.x += 1;
-        if (SettingsManager.get().controls.zoom_in.stream().anyMatch(Gdx.input::isKeyPressed)) cam.zoom = Math.max(0.01f, cam.zoom-0.01f);
-        if (SettingsManager.get().controls.zoom_out.stream().anyMatch(Gdx.input::isKeyPressed)) cam.zoom = Math.min(1f, cam.zoom += 0.01f);
-        if (Gdx.input.isKeyPressed(Input.Keys.F3)) {
+        if (SettingsManager.get().controls.zoom_in.stream().anyMatch(Gdx.input::isKeyPressed)) cam.zoom = Math.max(0.01f, cam.zoom-1f * delta);
+        if (SettingsManager.get().controls.zoom_out.stream().anyMatch(Gdx.input::isKeyPressed)) cam.zoom = Math.min(1f, cam.zoom + 1f*delta);
+        if (Gdx.input.isKeyJustPressed(Input.Keys.F3)) {
             GlobalVariables.DEBUG_ENABLED = !GlobalVariables.DEBUG_ENABLED;
             System.out.println("Debug status: " + GlobalVariables.DEBUG_ENABLED);
         }
@@ -106,7 +106,7 @@ public class Main extends ApplicationAdapter {
         float delta = Gdx.graphics.getDeltaTime();
         Modloader.UpdateMods(delta);
         ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
-        _process_keyboard_inputs();
+        _process_keyboard_inputs(delta);
 
         Entity.update_all(delta, world);
         cam.position.set(localPlayer.get_pos().x + localPlayer.get_size().x /2, localPlayer.get_pos().y + localPlayer.get_size().y /2, 0);

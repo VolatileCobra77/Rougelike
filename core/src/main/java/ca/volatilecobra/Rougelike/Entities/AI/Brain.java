@@ -109,9 +109,14 @@ public class Brain {
 // Find the first point at least 10 units away
         for (Vector2 point : lastPath) {
             if (point.dst(currentPos) >= 10f) {
-                walkingTarget = point;
-                lastPath.remove(point);
-                break;
+                try{
+                    walkingTarget = point;
+                    if (currentPos.dst(walkingTarget) >= 1f){
+
+                        lastPath.remove(point);
+                        break;
+                    }
+                }catch (Exception ignored){};
             }
         }
 
