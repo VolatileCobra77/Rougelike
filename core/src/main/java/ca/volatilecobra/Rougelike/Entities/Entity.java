@@ -42,10 +42,22 @@ public class Entity {
     public float health = maxHealth;
 
     public boolean isDead = false;
+
+    public float respawnTime = 1f;
+
+    public float timeSinceDeath = 0f;
+
     public Vector2 respawnLocation = new Vector2(0,0);
 
 
-    public boolean damage(float ammount){
+    public void damage(float ammount){
+
+        health = Math.max(0, health - ammount);
+        if (health <=0){
+            isDead = true;
+            _pos = new Vector2(respawnLocation);
+            timeSinceDeath = 0;
+        }
 
     }
 
@@ -64,8 +76,11 @@ public class Entity {
 
     // Call this every frame to update movement
     public void update(float delta, WorldManager worldManager) {
-        Vector2 accelerationVector = new Vector2(_desiredDirection).scl(_acceleration * delta);
-
+        Vector2 accelerationVector = new Vector2(0,0);
+        timeSinceDeath += delta;
+        if (!isDead || timeSinceDeath >= respawnTime) {
+            accelerationVector = new Vector2(_desiredDirection).scl(_acceleration * delta);
+        }
         if (_tex != null){
             _size.x = _tex.getWidth();
             //for an overlap to simulate it being semi orthographic, we subtract a small fixed amount
@@ -342,26 +357,31 @@ public class Entity {
     }
 
     public void Render(SpriteBatch sprite_batch){
-        if (isAnimated){
-            animator.draw(sprite_batch, _pos);
-            return;
-        }
-        if (_tex == null){
-            throw new IllegalStateException("_tex was not defined, either pass in a shape renderer to the render function or specify a texture in the constructor");
-        }
+        if (!isDead || timeSinceDeath >= respawnTime) {
+            isDead = false;
+            if (isAnimated) {
+                animator.draw(sprite_batch, _pos);
+                return;
+            }
+            if (_tex == null) {
+                throw new IllegalStateException("_tex was not defined, either pass in a shape renderer to the render function or specify a texture in the constructor");
+            }
 
 
-        sprite_batch.draw(_tex, _pos.x, _pos.y);
+            sprite_batch.draw(_tex, _pos.x, _pos.y);
+        }
     }
     public void Render(SpriteBatch sprite_batch, ShapeRenderer shape_renderer){
-        if (_tex != null){
-            //System.err.println("WARNING: shape_renderer passed but _tex is defined, using texture");
-            Render(sprite_batch);
-            return;
+        if (!isDead || timeSinceDeath >= respawnTime) {
+            isDead = false;
+            if (_tex != null) {
+                //System.err.println("WARNING: shape_renderer passed but _tex is defined, using texture");
+                Render(sprite_batch);
+                return;
+            }
+            shape_renderer.setColor(_fallback_color);
+            shape_renderer.rect(_pos.x, _pos.y, _size.x, _size.y);
         }
-        shape_renderer.setColor(_fallback_color);
-        shape_renderer.rect(_pos.x, _pos.y, _size.x, _size.y);
-
     }
 
 

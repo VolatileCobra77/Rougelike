@@ -3,6 +3,7 @@ package ca.volatilecobra.Rougelike.Entities.AI;
 import ca.volatilecobra.Rougelike.Entities.Entity;
 import ca.volatilecobra.Rougelike.Utils.Physics.Hit;
 import ca.volatilecobra.Rougelike.Utils.Physics.Physics;
+import ca.volatilecobra.Rougelike.World.Tile;
 import ca.volatilecobra.Rougelike.World.WorldManager;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -92,6 +93,19 @@ public class Brain {
     }
 
 
+    Vector2 getRandomVec2(int x_max, int x_min, int y_max, int y_min){
+        Random rnd = new Random();
+        Vector2 vec =new Vector2(rnd.nextInt(x_min, x_max), rnd.nextInt(y_min,y_max));
+
+        Vector2 scaled = new Vector2(new Vector2(vec).x / Tile.tile_size, new Vector2(vec).y / Tile.tile_size);
+        while (worldManager.getTileAt(scaled).collides){
+            vec =new Vector2(rnd.nextInt(x_min, x_max), rnd.nextInt(y_min,y_max));
+
+            scaled = new Vector2(new Vector2(vec).x / Tile.tile_size, new Vector2(vec).y / Tile.tile_size);
+        };
+        return vec
+    }
+
     public Brain(){
 
     }
@@ -109,7 +123,7 @@ public class Brain {
         timeSinceUpdate += delta;
         timeSinceLock += delta;
 
-        if (timeSinceUpdate >= updateinterval) {
+        if (timeSinceUpdate >= updateinterval && (!host.isDead || host.timeSinceDeath >= host.respawnTime)) {
             timeSinceUpdate -= updateinterval;
             debug_update = true;
 
@@ -162,7 +176,7 @@ public class Brain {
                     Random rand = new Random();
                     int[] choice = directions[rand.nextInt(4)];
 
-                    Vector2 pos_modified = new Vector2(host.get_pos()).add(new Vector2(choice[0], choice[1]).scl(rand.nextInt(100, 300)));
+                    Vector2 pos_modified = getRandomVec2(300,100,300,100);
 
 
                     if (pos_modified.dst(home) >= max_dist_from_home || timeRoaming >= maxTimeRoaming){
