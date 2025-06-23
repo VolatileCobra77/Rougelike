@@ -58,7 +58,7 @@ public class Brain {
 
     public float timeRoaming = 0f;
 
-    public float maxTimeRoaming = 10f;
+    public float maxTimeRoaming = 120f;
 
     Vector2 currentVisibleTarget = new Vector2(0,0);
 
@@ -139,7 +139,14 @@ public class Brain {
                 case GO_HOME:{
                     System.out.println("Going Home");
                     target = new Vector2(home);
-                    if (new Vector2(host.get_pos()).epsilonEquals())
+                    if (new Vector2(host.get_pos()).epsilonEquals(new Vector2(home), 100f)){
+                        current_task = Task.ROAM;
+                        Random rnd = new Random();
+                        target = new Vector2(home).add(new Vector2(rnd.nextInt((int)-(max_dist_from_home - 50), (int)max_dist_from_home-50),rnd.nextInt((int)-(max_dist_from_home - 50), (int)max_dist_from_home-50)));
+                        roamingTarget = new Vector2(target);
+                        hasReachedTarget = false;
+
+                    }
                     break;
                 }
                 case ROAM:{
