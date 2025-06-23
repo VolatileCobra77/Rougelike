@@ -37,7 +37,30 @@ public class Entity {
     float _deceleration = 400f;   // units per second^2
     float _maxVelocity = 300f;    // units per second
 
+    public float maxHealth = 100f;
 
+    public float health = maxHealth;
+
+    public boolean isDead = false;
+    public Vector2 respawnLocation = new Vector2(0,0);
+
+
+    public boolean damage(float ammount){
+
+    }
+
+
+    public void setAccel(float accel){
+        _acceleration = accel;
+    }
+
+    public void setDecel(float decel){
+        _deceleration = decel;
+    }
+
+    public void setMaxVel(float maxVel){
+        _maxVelocity = maxVel;
+    }
 
     // Call this every frame to update movement
     public void update(float delta, WorldManager worldManager) {
@@ -120,14 +143,23 @@ public class Entity {
 
         return null; // No safe spot found within maxDistance
     }
-    public void draw_debug(ShapeRenderer shapeRenderer, SpriteBatch spriteBatch){
+    public void draw_debug(ShapeRenderer shapeRenderer){
         shapeRenderer.setColor(1,1,0,1);
         shapeRenderer.rect(_pos.x, _pos.y, _size.x,_size.y);
     }
+    public void draw_debug(SpriteBatch spriteBatch){
+
+    }
 
     public static void draw_debug_all(ShapeRenderer shapeRenderer, SpriteBatch spriteBatch){
+
+
         for (Entity entity: ENTITIES.values()){
-            entity.draw_debug(shapeRenderer, spriteBatch);
+            if (shapeRenderer !=null){
+                entity.draw_debug(shapeRenderer);
+            }else{
+                entity.draw_debug(spriteBatch);
+            }
         }
     }
 

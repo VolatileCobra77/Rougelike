@@ -5,12 +5,15 @@ import ca.volatilecobra.Rougelike.Utils.Physics.Hit;
 import ca.volatilecobra.Rougelike.Utils.Physics.Physics;
 import ca.volatilecobra.Rougelike.World.WorldManager;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 
 import java.sql.Array;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
@@ -27,19 +30,35 @@ public class Brain {
     boolean pathfinderDone = true;
     Vector2 walkingTarget = null;
 
-    float baseUpdateInterval = 1f;
+    public float baseUpdateInterval = 1f;
 
-    float targetAquiredUpdateInterval =0.1f;
+    public float baseAccel = 500;
 
-    float updateinterval = baseUpdateInterval;
+    public float targetAquiredAccel = 1000;
 
-    float timeSinceLock = 0f;
+    public float targetAquiredDecel = 400;
 
-    float timeSinceUpdate = 0f;
+    public float baseDecel = 200;
 
-    float forgetTime = 1f;
+    public float targetAquiredMaxVel = 300;
 
-    float viewDist = 250f;
+    public float baseMaxVel = 150;
+
+    public float targetAquiredUpdateInterval =0.1f;
+
+    public float updateinterval = baseUpdateInterval;
+
+    public float timeSinceLock = 0f;
+
+    public float timeSinceUpdate = 0f;
+
+    public float forgetTime = 1f;
+
+    public float viewDist = 250f;
+
+    public float timeRoaming = 0f;
+
+    public float maxTimeRoaming = 10f;
 
     Vector2 currentVisibleTarget = new Vector2(0,0);
 
@@ -47,6 +66,17 @@ public class Brain {
 
     Vector2 debug_last_hit = new Vector2(0,0);
 
+
+    Task current_task = Task.FOLLOW;
+
+    public float max_dist_from_home = 1000f;
+
+
+    public Vector2 home;
+
+    boolean hasReachedTarget = true;
+
+    Vector2 roamingTarget = null;
 
 
     public void requestPathAsync(Vector2 start, Vector2 goal, WorldManager world, Consumer<List<Vector2>> onComplete) {
@@ -78,6 +108,7 @@ public class Brain {
         this.worldManager = worldManager;
         timeSinceUpdate += delta;
         timeSinceLock += delta;
+
         if (timeSinceUpdate >= updateinterval) {
             timeSinceUpdate -= updateinterval;
             debug_update = true;
@@ -87,16 +118,73 @@ public class Brain {
             Hit raycastHit = Physics.raycast(host.get_pos(), Entity.Get_from_id("player").get_pos(), dist, worldManager, 16);
             if (!raycastHit.hitObstacle && raycastHit.reachedEnd) {
                 currentVisibleTarget = new Vector2(raycastHit.location);
+                current_task = Task.FOLLOW;
                 updateinterval = targetAquiredUpdateInterval;
                 timeSinceLock = 0;
-            } else if(timeSinceLock >= forgetTime) {
+                host.setAccel(targetAquiredAccel);
+                host.setMaxVel(targetAquiredMaxVel);
+                host.setDecel(targetAquiredDecel);
+            } else if(timeSinceLock >= forgetTime && current_task == Task.FOLLOW) {
+                host.setAccel(baseAccel);
+                host.setMaxVel(baseMaxVel);
+                host.setDecel(baseDecel);
                 updateinterval = baseUpdateInterval;
+                current_task = Task.ROAM;
             }
 
 
+            Vector2 target = null;
+
+            switch(current_task){
+                case GO_HOME:{
+                    System.out.println("Going Home");
+                    target = new Vector2(home);
+                    if (new Vector2(host.get_pos()).epsilonEquals())
+                    break;
+                }
+                case ROAM:{
+                    System.out.println("Roaming");
+                    timeRoaming +=updateinterval;
+
+                    int[][] directions = new int[][]{
+                        {0,-1},
+                        {1,0},
+                        {0,1},
+                        {-1,0}
+                    };
+                    Random rand = new Random();
+                    int[] choice = directions[rand.nextInt(4)];
+
+                    Vector2 pos_modified = new Vector2(host.get_pos()).add(new Vector2(choice[0], choice[1]).scl(rand.nextInt(100, 300)));
 
 
-            requestPathAsync(host.get_pos(), currentVisibleTarget, worldManager, path -> {
+                    if (pos_modified.dst(home) >= max_dist_from_home || timeRoaming >= maxTimeRoaming){
+
+                        current_task = Task.GO_HOME;
+                        timeRoaming = 0;
+                        target = new Vector2(home);
+                        break;
+                    }
+                    if (hasReachedTarget){
+                        target = new Vector2(pos_modified);
+                        roamingTarget = new Vector2(target);
+                        hasReachedTarget = false;
+                    }
+                    hasReachedTarget = host.get_pos().epsilonEquals(roamingTarget, 60f);
+
+
+
+                    break;
+                }
+                case FOLLOW:{
+                    System.out.println("following");
+                    target = currentVisibleTarget;
+                    break;
+                }
+
+            }
+
+            requestPathAsync(host.get_pos(), target, worldManager, path -> {
                 if (path != null) {
                     lastPath = path; // Safe, runs on main thread
                     pathfinderDone = true;
@@ -104,14 +192,14 @@ public class Brain {
             });
         }
         // Current enemy position
-        Vector2 currentPos = host.get_pos();
+        Vector2 currentPos = new Vector2(host.get_pos());
 
-// Find the first point at least 10 units away
+// Find the first point at most 10 units away
         for (Vector2 point : lastPath) {
-            if (point.dst(currentPos) >= 10f) {
+            if (point.dst(currentPos) <= 40f) {
                 try{
                     walkingTarget = point;
-                    if (currentPos.dst(walkingTarget) >= 1f){
+                    if (currentPos.dst(walkingTarget) <= 40f){
 
                         lastPath.remove(point);
                         break;
@@ -154,6 +242,26 @@ public class Brain {
         }
         shapeRenderer.line(host.get_pos().x, host.get_pos().y, debug_last_hit.x, debug_last_hit.y);
 
+    }
+    public void draw_debug(SpriteBatch batch){
+        BitmapFont font = new BitmapFont();
+        font.setColor(0,1,1,1);
+        int inc =0;
+        font.draw(batch, current_task.name(), host.get_pos().x, host.get_pos().y);
+        inc+=20;
+        font.draw(batch, new Vector2(host.get_pos()).toString(), host.get_pos().x, host.get_pos().y-inc);
+        inc+=20;
+        font.draw(batch, "HOME " + home.toString(), host.get_pos().x, host.get_pos().y-inc);
+        inc+=20;
+        font.draw(batch, "TARGET " + walkingTarget, host.get_pos().x, host.get_pos().y -inc);
+        if (current_task == Task.ROAM) {
+            inc+=20;
+            font.draw(batch, "TIME ROAMING " + timeRoaming, host.get_pos().x, host.get_pos().y - inc);
+            inc+=20;
+            font.draw(batch, "HAS REACHED ROAM TARGET " + hasReachedTarget, host.get_pos().x, host.get_pos().y - inc);
+            inc += 20;
+            font.draw(batch, "ROAM TARGET " + roamingTarget, host.get_pos().x, host.get_pos().y - inc);
+        };
     }
 
     public void dispose() {

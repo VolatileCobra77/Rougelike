@@ -15,7 +15,7 @@ public class AStar {
     public boolean isDone = true;
     int maxDist = 1000;
 
-    int maxIterations = 1000;
+    int maxIterations = 10000;
     int iterations = 0;
 
     public AStar(){
@@ -25,12 +25,21 @@ public class AStar {
         Node startNode = new Node(start, null, target);
         openSet.add(startNode);
         while (!openSet.isEmpty()) {
-//            iterations ++;
-//            if (iterations  >= maxIterations){
-//                return new ArrayList<Vector2>();
-//            }
-
             Node nextNode = openSet.poll();
+            iterations ++;
+            if (iterations  >= maxIterations){
+                List<Vector2> outputList = new ArrayList<>();
+                Node current = nextNode;
+                while (current != null) {
+                    outputList.add(current.position);
+                    current = current.parent;
+                }
+                Collections.reverse(outputList);
+                System.out.println("ABORTING itteration max reached.");
+                return outputList;
+            }
+
+
             closedSet.add(nextNode);
             if (nextNode.position.epsilonEquals(target, 10f)) {
                 List<Vector2> outputList = new ArrayList<>();
