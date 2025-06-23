@@ -161,7 +161,6 @@ public class Brain {
 
             switch(current_task){
                 case GO_HOME:{
-                    System.out.println("Going Home");
                     target = new Vector2(home);
                     if (new Vector2(host.get_pos()).epsilonEquals(new Vector2(home), 100f)){
                         current_task = Task.IDLE;
@@ -172,7 +171,6 @@ public class Brain {
                     break;
                 }
                 case ROAM:{
-                    System.out.println("Roaming");
                     timeRoaming +=updateinterval;
                     timeSinceRoamingSuccess += updateinterval;
                     int[][] directions = new int[][]{
@@ -205,7 +203,6 @@ public class Brain {
                     break;
                 }
                 case FOLLOW:{
-                    System.out.println("following");
                     target = currentVisibleTarget;
                     break;
                 }

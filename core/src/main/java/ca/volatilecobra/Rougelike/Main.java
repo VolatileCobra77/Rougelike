@@ -7,6 +7,7 @@ import ca.volatilecobra.Rougelike.Entities.Entity;
 import ca.volatilecobra.Rougelike.Entities.Player;
 import ca.volatilecobra.Rougelike.Mods.DefaultTextures;
 import ca.volatilecobra.Rougelike.Mods.Modloader;
+import ca.volatilecobra.Rougelike.World.Room;
 import ca.volatilecobra.Rougelike.World.WorldManager;
 import ca.volatilecobra.SettingsManager;
 import com.badlogic.gdx.ApplicationAdapter;
@@ -48,11 +49,11 @@ public class Main extends ApplicationAdapter {
         font = new BitmapFont();
         localPlayer = new Player(new Vector2(0,0));
         System.out.println("Entity count: " + ENTITIES.size());
-        world = new WorldManager(10);
+        world = new WorldManager(100);
         GlobalVariables.CAMERA = cam;
         cam.setToOrtho(false, Gdx.graphics.getWidth(),  Gdx.graphics.getHeight());
         for (int i = 0; i < 5; i++) {
-            new Enemy("enemy_" + i, new Vector2(-10 - i*8,-10)).brain.update_target(localPlayer);
+            //new Enemy("enemy_" + i, new Vector2(-10 - i*8,-10)).brain.update_target(localPlayer);
         }
 
     }
@@ -119,6 +120,7 @@ public class Main extends ApplicationAdapter {
                 shape_renderer.circle(node.position.x, node.position.y, 4);
             }
         }
+        world.render_debug(shapeRenderer);
     }
     private void draw_debug_ui(ShapeRenderer shapeRenderer){
         Modloader.RenderModsDebugUI(shapeRenderer);
@@ -127,6 +129,9 @@ public class Main extends ApplicationAdapter {
         font.draw(batch, "FPS: " + Gdx.graphics.getFramesPerSecond() , 10, Gdx.graphics.getHeight() - 10);
         font.draw(batch, "Frametime: " + Gdx.graphics.getDeltaTime() , 10, Gdx.graphics.getHeight() - 30);
         font.draw(batch, "World Pos: " + localPlayer.get_pos(), 10, Gdx.graphics.getHeight() - 50);
+        font.draw(batch, "Tile Pos: " + localPlayer.getTilePos(), 10, Gdx.graphics.getHeight() - 70 );
+        Room currentRoom = world.getRoomAt(localPlayer.getTilePos());
+        font.draw(batch, "Current Room: " + (currentRoom == null ? "None" : currentRoom.name), 10, Gdx.graphics.getHeight() - 90);
         Modloader.RenderModsDebugUI(batch);
     }
 

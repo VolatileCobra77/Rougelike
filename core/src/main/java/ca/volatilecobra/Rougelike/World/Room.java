@@ -26,6 +26,7 @@ public class Room {
     public List<Vector2> right_exits = new ArrayList<Vector2>();
 
     public static Map<String, Room> ROOMS = new HashMap<>();
+    public static Map<String, Room> BASE_ROOMS = new HashMap<>();
 
     public Room(String name, Vector2 size, Vector2 location) {
         this.name = name;
@@ -55,8 +56,11 @@ public class Room {
     public void update_tile_pos(){
         for (int x = 0; x < tiles.length; x++) {
             for (int y = 0; y < tiles[x].length; y++) {
-                tiles[x][y]._world_pos.x += this.location.x*Tile.tile_size;
-                tiles[x][y]._world_pos.y += this.location.y*Tile.tile_size;
+                tiles[x][y]._world_pos = new Vector2(
+                    (location.x + x) * Tile.tile_size,
+                    (location.y + y) * Tile.tile_size
+                );
+
             }
         }
     }
@@ -89,13 +93,14 @@ public class Room {
     }
 
     public void render(SpriteBatch spritebatch) {
-        for (int y = 0; y < tiles.length; y++) {
-            for (int x = 0; x < tiles[y].length; x++) {
-                if (tiles[y][x] != null) {
-                    tiles[y][x].render(spritebatch);
+        for (Tile[] tile : tiles) {
+            for (Tile value : tile) {
+                if (value != null) {
+                    value.render(spritebatch);
                 }
             }
         }
+
     }
 
 

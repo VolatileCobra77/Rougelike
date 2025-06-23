@@ -226,6 +226,10 @@ public class Entity {
         }
     }
 
+    public Vector2 getTilePos(){
+        return new Vector2((float)Math.floor(_pos.x/Tile.tile_size), (float)Math.floor(_pos.y/ Tile.tile_size));
+    }
+
     // Decelerate when no input is given
     void applyDeceleration(float delta) {
         if (_velocity.isZero(0.01f)) return;

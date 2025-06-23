@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
+import com.github.javaparser.utils.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -179,8 +180,68 @@ public class DefaultTextures extends Mod {
         largeLeft.left_exits.add(new Vector2(0, 4));
 
 
+        Room hallway_horizontal = new Room("hallway_horizontal", new Vector2(3, 1), new Vector2(0, 0));
+        hallway_horizontal.tiles = new Tile[3][1];
+        for (int x = 0; x < 3; x++) {
+            hallway_horizontal.tiles[x][0] = floor_regular.copy(0);
+            hallway_horizontal.tiles[x][0]._world_pos = new Vector2(x, 0);
+        }
+        hallway_horizontal.left_exits.add(new Vector2(0, 0));
+        hallway_horizontal.right_exits.add(new Vector2(2, 0));
 
 
+        Room hallway_vertical = new Room("hallway_vertical", new Vector2(1, 3), new Vector2(0, 0));
+        hallway_vertical.tiles = new Tile[1][3];
+        for (int y = 0; y < 3; y++) {
+            hallway_vertical.tiles[0][y] = floor_regular.copy(0);
+            hallway_vertical.tiles[0][y]._world_pos = new Vector2(0, y);
+        }
+        hallway_vertical.up_exits.add(new Vector2(0, 2));
+        hallway_vertical.down_exits.add(new Vector2(0, 0));
+
+
+        Room x_junc = new Room("x_junction", new Vector2(5, 5), new Vector2(0, 0));
+        fill(x_junc.tiles, floor_regular, x_junc.location);
+        border(x_junc.tiles, wall_vertical, wall_top, wall_bottom, wall_corner_ul, wall_corner_ur, wall_corner_dl, wall_corner_dr);
+
+        add_exit(x_junc, new Vector2(2, 4), 1, 0); // up
+        add_exit(x_junc, new Vector2(2, 0), 1, 0); // down
+        add_exit(x_junc, new Vector2(0, 2), 0, 1); // left
+        add_exit(x_junc, new Vector2(4, 2), 0, 1); // right
+
+        x_junc.up_exits.add(new Vector2(2, 4));
+        x_junc.down_exits.add(new Vector2(2, 0));
+        x_junc.left_exits.add(new Vector2(0, 2));
+        x_junc.right_exits.add(new Vector2(4, 2));
+
+
+
+
+        List<Pair<Room, Integer>> weightedRooms = List.of(
+            new Pair<>(square, 21),
+            new Pair<>(t_junc, 21),
+            new Pair<>(up_room, 10),
+            new Pair<>(down_room, 10),
+            new Pair<>(left_room, 10),
+            new Pair<>(right_room, 10),
+            new Pair<>(smallRight, 5),
+            new Pair<>(mediumDown, 5),
+            new Pair<>(largeLeft, 5),
+            new Pair<>(x_junc, 3)
+        );
+
+        int total = 0;
+        int index = 0;
+
+        for (Pair<Room, Integer> entry : weightedRooms) {
+            Room base = entry.a;
+            int weight = entry.b;
+
+            for (int i = 0; i < weight && total < 100; i++, total++, index++) {
+                Room newRm = base.copy(index, new Vector2(0,0));
+                Room.BASE_ROOMS.put(newRm.name, newRm);
+            }
+        }
 
 //        List<Tile> all_tiles = new ArrayList<Tile>(Tile.TILES.values());
 //
