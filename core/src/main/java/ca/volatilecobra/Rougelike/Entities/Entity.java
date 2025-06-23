@@ -76,28 +76,24 @@ public class Entity {
 
     // Call this every frame to update movement
     public void update(float delta, WorldManager worldManager) {
-        Vector2 accelerationVector = new Vector2(0,0);
+        Vector2 accelerationVector = new Vector2(0, 0);
         timeSinceDeath += delta;
+
         if (!isDead || timeSinceDeath >= respawnTime) {
-            accelerationVector = new Vector2(_desiredDirection).scl(_acceleration * delta);
+            accelerationVector.set(_desiredDirection).scl(_acceleration * delta);
         }
-        if (_tex != null){
+
+        // Update size from texture or animation
+        if (_tex != null) {
             _size.x = _tex.getWidth();
-            //for an overlap to simulate it being semi orthographic, we subtract a small fixed amount
-            _size.y = _tex.getHeight()-5;
+            _size.y = _tex.getHeight() - 5; // semi-orthographic adjustment
         } else if (isAnimated) {
-
             _size.x = animator.getCurrentFrame().getHeight();
-
-            //for an overlap to simulate being semi orthographic, we subtract a small fixed amount
             _size.y = animator.getCurrentFrame().getHeight() - 5;
             animator.update(delta);
-
         }
 
-
-
-        // If there's no desired movement, decelerate
+        // Handle velocity and acceleration
         if (_desiredDirection.isZero(0.01f)) {
             applyDeceleration(delta);
         } else {
@@ -109,35 +105,37 @@ public class Entity {
             _velocity.setLength(_maxVelocity);
         }
 
-        // Predict movement separately on each axis
+        // Predict movement
         Vector2 proposedMove = new Vector2(_velocity).scl(delta);
 
-        // Try X movement
-        if (!willCollideAt(_pos.x + proposedMove.x, _pos.y, worldManager)) {
-            _pos.x += proposedMove.x;
+        // X axis movement
+        float proposedX = _pos.x + proposedMove.x;
+        if (!willCollideAt(proposedX, _pos.y, worldManager)) {
+            _pos.x = proposedX;
         } else {
-            _velocity.x = 0; // stop horizontal movement if blocked
+            _velocity.x = 0;
         }
 
-        // Try Y movement
-        if (!willCollideAt(_pos.x, _pos.y + proposedMove.y, worldManager)) {
-            _pos.y += proposedMove.y;
+        // Y axis movement
+        float proposedY = _pos.y + proposedMove.y;
+        if (!willCollideAt(_pos.x, proposedY, worldManager)) {
+            _pos.y = proposedY;
         } else {
-            _velocity.y = 0; // stop vertical movement if blocked
+            _velocity.y = 0;
         }
 
-
-        if (willCollideAt(_pos.x, _pos.y, worldManager)){
-            Vector2 safeSpot = findNearestSafeSpot(_pos, 64, worldManager); // max search range in pixels
-
+        // Final safety collision check
+        if (willCollideAt(_pos.x, _pos.y, worldManager)) {
+            Vector2 safeSpot = findNearestSafeSpot(_pos, 64, worldManager);
             if (safeSpot != null) {
                 _pos.set(safeSpot);
-                _velocity.setZero(); // stop momentum
+                _velocity.setZero();
             } else {
                 System.out.println("No safe spot found for entity " + _id);
             }
         }
     }
+
 
     private Vector2 findNearestSafeSpot(Vector2 startPos, int maxDistance, WorldManager worldManager) {
         int step = 4; // pixels per search step
@@ -159,7 +157,7 @@ public class Entity {
         return null; // No safe spot found within maxDistance
     }
     public void draw_debug(ShapeRenderer shapeRenderer){
-        shapeRenderer.setColor(1,1,0,1);
+        shapeRenderer.setColor(1,1,0,0.5f);
         shapeRenderer.rect(_pos.x, _pos.y, _size.x,_size.y);
     }
     public void draw_debug(SpriteBatch spriteBatch){

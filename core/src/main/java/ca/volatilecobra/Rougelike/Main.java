@@ -1,5 +1,7 @@
 package ca.volatilecobra.Rougelike;
 
+import ca.volatilecobra.Rougelike.Entities.AI.AStar;
+import ca.volatilecobra.Rougelike.Entities.AI.Node;
 import ca.volatilecobra.Rougelike.Entities.Enemies.Enemy;
 import ca.volatilecobra.Rougelike.Entities.Entity;
 import ca.volatilecobra.Rougelike.Entities.Player;
@@ -19,6 +21,8 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.ScreenUtils;
+
+import java.util.Set;
 
 import static ca.volatilecobra.Rougelike.Entities.Entity.ENTITIES;
 
@@ -47,11 +51,12 @@ public class Main extends ApplicationAdapter {
         world = new WorldManager(10);
         GlobalVariables.CAMERA = cam;
         cam.setToOrtho(false, Gdx.graphics.getWidth(),  Gdx.graphics.getHeight());
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 5; i++) {
             new Enemy("enemy_" + i, new Vector2(-10 - i*8,-10)).brain.update_target(localPlayer);
         }
 
     }
+    private boolean f3JustPressed = true;
 
     private void _process_keyboard_inputs(float delta){
         Vector2 inputDir = new Vector2();
@@ -62,9 +67,18 @@ public class Main extends ApplicationAdapter {
         if (SettingsManager.get().controls.right.stream().anyMatch(Gdx.input::isKeyPressed)) inputDir.x += 1;
         if (SettingsManager.get().controls.zoom_in.stream().anyMatch(Gdx.input::isKeyPressed)) cam.zoom = Math.max(0.01f, cam.zoom-1f * delta);
         if (SettingsManager.get().controls.zoom_out.stream().anyMatch(Gdx.input::isKeyPressed)) cam.zoom = Math.min(1f, cam.zoom + 1f*delta);
-        if (Gdx.input.isKeyJustPressed(Input.Keys.F3)) {
-            GlobalVariables.DEBUG_ENABLED = !GlobalVariables.DEBUG_ENABLED;
-            System.out.println("Debug status: " + GlobalVariables.DEBUG_ENABLED);
+        if (Gdx.input.isKeyPressed(Input.Keys.F3)) {
+            if (Gdx.input.isKeyJustPressed(Input.Keys.I)) GlobalVariables.DEBUG_INVISIBLE = !GlobalVariables.DEBUG_INVISIBLE;
+            if (Gdx.input.isKeyJustPressed(Input.Keys.P)) GlobalVariables.DEBUG_PATHFINDING_ATTEMPTS_VISIBLE = !GlobalVariables.DEBUG_PATHFINDING_ATTEMPTS_VISIBLE;
+            if(f3JustPressed){
+                f3JustPressed = false;
+                GlobalVariables.DEBUG_ENABLED = !GlobalVariables.DEBUG_ENABLED;
+                System.out.println("Debug status: " + GlobalVariables.DEBUG_ENABLED);
+            }
+        }
+
+        if (!Gdx.input.isKeyPressed(Input.Keys.F3) && !f3JustPressed){
+            f3JustPressed = true;
         }
 
         localPlayer.setDesiredDirection(inputDir);
@@ -89,6 +103,22 @@ public class Main extends ApplicationAdapter {
         Modloader.RenderModsDebug(shapeRenderer);
         world.draw_debug(shapeRenderer);
         Entity.draw_debug_all(shapeRenderer, null);
+
+
+        shape_renderer.setColor(0,1,1,1);
+
+        if (GlobalVariables.DEBUG_PATHFINDING_ATTEMPTS_VISIBLE) for (AStar astar : AStar.getInstancesSnapshot()){
+            Set<Node> closedSetSnapshot = astar.getClosedSetSnapshot();
+            Set<Node> openSetSnapshot = astar.getOpenSetSnapshot();
+            shape_renderer.setColor(0,1,0,1);
+            for (Node node :closedSetSnapshot){
+                shape_renderer.circle(node.position.x, node.position.y, 4);
+            }
+            shape_renderer.setColor(0,1,1,1);
+            for (Node node :openSetSnapshot){
+                shape_renderer.circle(node.position.x, node.position.y, 4);
+            }
+        }
     }
     private void draw_debug_ui(ShapeRenderer shapeRenderer){
         Modloader.RenderModsDebugUI(shapeRenderer);

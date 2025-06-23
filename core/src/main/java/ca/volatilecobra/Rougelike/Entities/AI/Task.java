@@ -4,5 +4,6 @@ public enum Task {
     FOLLOW,
     ROAM,
     GO_HOME,
-    GO_TO
+    GO_TO,
+    IDLE
 }

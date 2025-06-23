@@ -1,48 +1,47 @@
 package ca.volatilecobra.Rougelike.Entities.AI;
 
-import ca.volatilecobra.Rougelike.Entities.Entity;
 import com.badlogic.gdx.math.Vector2;
+
+import java.util.HashSet;
 
 public class Node implements Comparable<Node> {
     public Vector2 position;
     public Node parent;
     public float hCost, gCost, fCost;
-    public boolean walkable = true;
 
     public Node(Vector2 position, Node parent, Vector2 goal) {
         this.position = position;
         this.parent = parent;
 
-        // Cost from start to this node
-        if (parent != null)
-            gCost = parent.gCost + getDistance(parent.position, this.position);
-        else
-            gCost = 0;
+        gCost = (parent != null)
+            ? parent.gCost + getDistance(parent.position, this.position)
+            : 0;
 
-        // Heuristic from this node to goal
         hCost = getDistance(this.position, goal);
-
         fCost = gCost + hCost;
+    }
+
+    private float getDistance(Vector2 a, Vector2 b) {
+        return (Math.abs(a.x - b.x) + Math.abs(a.y - b.y)) / 8f; // adjust for tile_size if needed
     }
 
     @Override
     public int compareTo(Node other) {
-        return Float.compare(this.fCost, other.fCost);
+        if (this.fCost != other.fCost)
+            return Float.compare(this.fCost, other.fCost);
+        return Float.compare(this.hCost, other.hCost); // tie-breaker toward goal
     }
+
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof Node)) return false;
         Node other = (Node) o;
-        return position.epsilonEquals(other.position, 0.01f); // or exact comparison
+        return (int) this.position.x == (int) other.position.x &&
+            (int) this.position.y == (int) other.position.y;
     }
 
     @Override
     public int hashCode() {
-        return position.hashCode();
-    }
-
-
-    private float getDistance(Vector2 a, Vector2 b) {
-        return Math.abs(a.x - b.x) + Math.abs(a.y - b.y); // Manhattan distance
+        return 31 * ((int) position.x) + ((int) position.y);
     }
 }
