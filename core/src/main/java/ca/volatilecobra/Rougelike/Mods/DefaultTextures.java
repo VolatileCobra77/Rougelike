@@ -8,7 +8,6 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.github.javaparser.utils.Pair;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultTextures extends Mod {
@@ -46,13 +45,16 @@ public class DefaultTextures extends Mod {
         fill(square.tiles, floor_regular,square.location);
         border(square.tiles, wall_vertical, wall_top, wall_bottom, wall_corner_ul, wall_corner_ur,wall_corner_dl, wall_corner_dr);
         add_exit(square, new Vector2 (9, 19), 2, 0);
-        square.up_exits.add(new Vector2 (9, 19));
         add_exit(square, new Vector2 (9, 0), 2, 0);
-        square.down_exits.add(new Vector2 (9, 0));
         add_exit(square, new Vector2 (0, 9), 0, 2);
-        square.left_exits.add(new Vector2 (0, 9));
         add_exit(square, new Vector2 (19, 9), 0, 2);
-        square.right_exits.add(new Vector2 (19, 9));
+        square.setExits(
+            List.of(new Vector2 (9, 19)),
+            List.of(new Vector2 (9, 0)),
+            List.of(new Vector2 (0, 9)),
+            List.of(new Vector2 (19, 9))
+        );
+
 
 
         Room t_junc = new Room("t_junc", new Vector2(10,10), new Vector2(0,0));
@@ -69,9 +71,13 @@ public class DefaultTextures extends Mod {
             {void_tile.copy(0),      void_tile.copy(0),        void_tile.copy(0),        wall_vertical.copy(0),    floor_regular.copy(0),     floor_regular.copy(0),    wall_vertical.copy(3),    void_tile.copy(0),        void_tile.copy(0),        void_tile.copy(0)     }
         };
 
-        t_junc.left_exits.add(new Vector2(0,5));
-        t_junc.right_exits.add(new Vector2(10,5));
-        t_junc.down_exits.add(new Vector2(4,0));
+        t_junc.setExits(
+            List.of(),
+            List.of(new Vector2(4, 0)),
+            List.of(new Vector2(0, 5)),
+            List.of(new Vector2(10, 5))
+        );
+
 
         //rotate 90deg to the right because its flipped when rendered for some reason, idk im just doing this because im too lazy to find annother way that does not require this
 
@@ -102,120 +108,102 @@ public class DefaultTextures extends Mod {
             }
         }
 
-
-        // UP exit room
         Room up_room = new Room("up_room", new Vector2(10, 10), new Vector2(0, 0));
         fill(up_room.tiles, floor_regular, up_room.location);
         border(up_room.tiles, wall_vertical, wall_top, wall_bottom, wall_corner_ul, wall_corner_ur, wall_corner_dl, wall_corner_dr);
-        add_exit(up_room, new Vector2(4, 9), 2, 0); // exit at top center
-        up_room.up_exits.add(new Vector2(4, 9));
+        add_exit(up_room, new Vector2(4, 9), 2, 0);
+        up_room.setExits(List.of(new Vector2(4, 9)), List.of(), List.of(), List.of());
 
-// DOWN exit room
         Room down_room = new Room("down_room", new Vector2(10, 10), new Vector2(0, 0));
         fill(down_room.tiles, floor_regular, down_room.location);
         border(down_room.tiles, wall_vertical, wall_top, wall_bottom, wall_corner_ul, wall_corner_ur, wall_corner_dl, wall_corner_dr);
-        add_exit(down_room, new Vector2(4, 0), 2, 0); // exit at bottom center
-        down_room.down_exits.add(new Vector2(4, 0));
+        add_exit(down_room, new Vector2(4, 0), 2, 0);
+        down_room.setExits(List.of(), List.of(new Vector2(4, 0)), List.of(), List.of());
 
-// LEFT exit room
         Room left_room = new Room("left_room", new Vector2(10, 10), new Vector2(0, 0));
         fill(left_room.tiles, floor_regular, left_room.location);
         border(left_room.tiles, wall_vertical, wall_top, wall_bottom, wall_corner_ul, wall_corner_ur, wall_corner_dl, wall_corner_dr);
-        add_exit(left_room, new Vector2(0, 4), 0, 2); // exit at left center
-        left_room.left_exits.add(new Vector2(0, 4));
+        add_exit(left_room, new Vector2(0, 4), 0, 2);
+        left_room.setExits(List.of(), List.of(), List.of(new Vector2(0, 4)), List.of());
 
-// RIGHT exit room
         Room right_room = new Room("right_room", new Vector2(10, 10), new Vector2(0, 0));
         fill(right_room.tiles, floor_regular, right_room.location);
         border(right_room.tiles, wall_vertical, wall_top, wall_bottom, wall_corner_ul, wall_corner_ur, wall_corner_dl, wall_corner_dr);
-        add_exit(right_room, new Vector2(9, 4), 0, 2); // exit at right center
-        right_room.right_exits.add(new Vector2(9, 4));
+        add_exit(right_room, new Vector2(9, 4), 0, 2);
+        right_room.setExits(List.of(), List.of(), List.of(), List.of(new Vector2(9, 4)));
 
-        // Small 6x6 room with a right exit
         Room smallRight = new Room("smallRight", new Vector2(6,6), new Vector2(0,0));
         fill(smallRight.tiles, floor_regular, smallRight.location);
         border(smallRight.tiles, wall_vertical, wall_top, wall_bottom, wall_corner_ul, wall_corner_ur, wall_corner_dl, wall_corner_dr);
         add_exit(smallRight, new Vector2(5, 2), 0, 2);
-        smallRight.right_exits.add(new Vector2(5, 2));
+        smallRight.setExits(List.of(), List.of(), List.of(), List.of(new Vector2(5, 2)));
 
-// Medium 8x10 room with bottom exit
         Room mediumDown = new Room("mediumDown", new Vector2(8,10), new Vector2(0,0));
         fill(mediumDown.tiles, floor_regular, mediumDown.location);
         border(mediumDown.tiles, wall_vertical, wall_top, wall_bottom, wall_corner_ul, wall_corner_ur, wall_corner_dl, wall_corner_dr);
         add_exit(mediumDown, new Vector2(3, 0), 2, 0);
-        mediumDown.down_exits.add(new Vector2(3, 0));
+        mediumDown.setExits(List.of(), List.of(new Vector2(3, 0)), List.of(), List.of());
 
-// Large 12x10 room with left exit, custom wall pattern (e.g. some missing walls)
         Room largeLeft = new Room("largeLeft", new Vector2(12,10), new Vector2(0,0));
-
-// Manually create tiles with a pattern for walls and floors
         for (int x = 0; x < 12; x++) {
             for (int y = 0; y < 10; y++) {
                 if (x == 0 && y >= 3 && y <= 5) {
-                    // leave space for exit on left side at y=3..5
                     largeLeft.tiles[x][y] = floor_regular.copy(0);
-                    largeLeft.tiles[x][y]._world_pos = new Vector2(x,y);
                 } else if (x == 0 || x == 11 || y == 0 || y == 9) {
-                    // border walls - just a simple wall_vertical or wall_top/bottom on edges
-                    if (y == 0) {
-                        largeLeft.tiles[x][y] = wall_bottom.copy(0);
-                        largeLeft.tiles[x][y]._world_pos = new Vector2(x,y);
-                    }
-                    else if (y == 9) {
-                        largeLeft.tiles[x][y] = wall_top.copy(0);
-                        largeLeft.tiles[x][y]._world_pos = new Vector2(x,y);
-                    }
-                    else {
-                        largeLeft.tiles[x][y] = wall_vertical.copy(0);
-                        largeLeft.tiles[x][y]._world_pos = new Vector2(x,y);
-                    }
+                    largeLeft.tiles[x][y] = (y == 0) ? wall_bottom.copy(0) : (y == 9) ? wall_top.copy(0) : wall_vertical.copy(0);
                 } else {
                     largeLeft.tiles[x][y] = floor_regular.copy(0);
-                    largeLeft.tiles[x][y]._world_pos = new Vector2(x,y);
                 }
+                largeLeft.tiles[x][y]._world_pos = new Vector2(x, y);
             }
         }
-// Add exits after the tile setup
         add_exit(largeLeft, new Vector2(0, 4), 0, 3);
-        largeLeft.left_exits.add(new Vector2(0, 4));
+        largeLeft.setExits(List.of(), List.of(), List.of(new Vector2(0, 4)), List.of());
+
+        Room hallway_vertical = new Room("hallway_vertical", new Vector2(3, 1), new Vector2(0, 0));
+        hallway_vertical.tiles = new Tile[3][1];
+
+        hallway_vertical.tiles[1][0] = floor_regular.copy(0);
+        hallway_vertical.tiles[1][0]._world_pos = new Vector2(1, 0);
+
+        hallway_vertical.tiles[0][0] = wall_vertical.copy(0);
+        hallway_vertical.tiles[0][0]._world_pos = new Vector2(0, 0);
+
+        hallway_vertical.tiles[2][0] = wall_vertical.copy(0);
+        hallway_vertical.tiles[2][0]._world_pos = new Vector2(2, 0);
 
 
-        Room hallway_horizontal = new Room("hallway_horizontal", new Vector2(3, 1), new Vector2(0, 0));
-        hallway_horizontal.tiles = new Tile[3][1];
-        for (int x = 0; x < 3; x++) {
-            hallway_horizontal.tiles[x][0] = floor_regular.copy(0);
-            hallway_horizontal.tiles[x][0]._world_pos = new Vector2(x, 0);
-        }
-        hallway_horizontal.left_exits.add(new Vector2(0, 0));
-        hallway_horizontal.right_exits.add(new Vector2(2, 0));
+        hallway_vertical.setExits(List.of(), List.of(), List.of(new Vector2(0, 0)), List.of(new Vector2(2, 0)));
+
+        Room hallway_horizontal = new Room("hallway_horizontal", new Vector2(1, 3), new Vector2(0, 0));
+        hallway_horizontal.tiles = new Tile[1][3];
 
 
-        Room hallway_vertical = new Room("hallway_vertical", new Vector2(1, 3), new Vector2(0, 0));
-        hallway_vertical.tiles = new Tile[1][3];
-        for (int y = 0; y < 3; y++) {
-            hallway_vertical.tiles[0][y] = floor_regular.copy(0);
-            hallway_vertical.tiles[0][y]._world_pos = new Vector2(0, y);
-        }
-        hallway_vertical.up_exits.add(new Vector2(0, 2));
-        hallway_vertical.down_exits.add(new Vector2(0, 0));
+        hallway_horizontal.tiles[0][1] = floor_regular.copy(0);
+        hallway_horizontal.tiles[0][1]._world_pos = new Vector2(0, 1);
+
+        hallway_horizontal.tiles[0][0] = wall_top.copy(0);
+        hallway_horizontal.tiles[0][0]._world_pos = new Vector2(0, 0);
+
+        hallway_horizontal.tiles[0][2] = wall_top.copy(0);
+        hallway_horizontal.tiles[0][2]._world_pos = new Vector2(0, 2);
 
 
-        Room x_junc = new Room("x_junction", new Vector2(5, 5), new Vector2(0, 0));
+        hallway_horizontal.setExits(List.of(new Vector2(0, 2)), List.of(new Vector2(0, 0)), List.of(), List.of());
+
+        Room x_junc = new Room("x_junction", new Vector2(3, 3), new Vector2(0, 0));
         fill(x_junc.tiles, floor_regular, x_junc.location);
         border(x_junc.tiles, wall_vertical, wall_top, wall_bottom, wall_corner_ul, wall_corner_ur, wall_corner_dl, wall_corner_dr);
-
-        add_exit(x_junc, new Vector2(2, 4), 1, 0); // up
-        add_exit(x_junc, new Vector2(2, 0), 1, 0); // down
-        add_exit(x_junc, new Vector2(0, 2), 0, 1); // left
-        add_exit(x_junc, new Vector2(4, 2), 0, 1); // right
-
-        x_junc.up_exits.add(new Vector2(2, 4));
-        x_junc.down_exits.add(new Vector2(2, 0));
-        x_junc.left_exits.add(new Vector2(0, 2));
-        x_junc.right_exits.add(new Vector2(4, 2));
-
-
-
+        add_exit(x_junc, new Vector2(1, 2), 1, 0);
+        add_exit(x_junc, new Vector2(1, 0), 1, 0);
+        add_exit(x_junc, new Vector2(0, 1), 0, 1);
+        add_exit(x_junc, new Vector2(2, 1), 0, 1);
+        x_junc.setExits(
+            List.of(new Vector2(2, 4)),
+            List.of(new Vector2(2, 0)),
+            List.of(new Vector2(0, 2)),
+            List.of(new Vector2(4, 2))
+        );
 
         List<Pair<Room, Integer>> weightedRooms = List.of(
             new Pair<>(square, 21),
@@ -232,36 +220,15 @@ public class DefaultTextures extends Mod {
 
         int total = 0;
         int index = 0;
-
         for (Pair<Room, Integer> entry : weightedRooms) {
             Room base = entry.a;
             int weight = entry.b;
-
             for (int i = 0; i < weight && total < 100; i++, total++, index++) {
                 Room newRm = base.copy(index, new Vector2(0,0));
                 Room.BASE_ROOMS.put(newRm.name, newRm);
             }
         }
 
-//        List<Tile> all_tiles = new ArrayList<Tile>(Tile.TILES.values());
-//
-//
-//        wall_top.setAllowedNeighbors(List.of(void_tile, floor_regular, floor_spikes), List.of(wall_bottom), List.of(wall_top, wall_corner_dl,wall_corner_dr, wall_corner_ur, wall_corner_ul), List.of(wall_top, wall_corner_dl,wall_corner_dr, wall_corner_ur, wall_corner_ul), all_tiles,all_tiles, all_tiles, all_tiles);
-//        wall_bottom.setAllowedNeighbors(List.of(wall_top,wall_corner_dl, wall_corner_dr,wall_corner_ur, wall_corner_ul), List.of(floor_regular, floor_spikes, void_from_wall) ,List.of(wall_bottom, wall_vertical), List.of(wall_bottom, wall_vertical), all_tiles,all_tiles,all_tiles,all_tiles);
-//        wall_corner_dl.setAllowedNeighbors(List.of(wall_vertical_t, wall_vertical_end, wall_vertical), List.of(wall_bottom), all_tiles, List.of(wall_top), all_tiles, all_tiles,all_tiles,all_tiles);
-//        wall_corner_dr.setAllowedNeighbors(List.of(wall_vertical_t, wall_vertical_end, wall_vertical), List.of(wall_bottom), List.of(wall_top) ,all_tiles, all_tiles, all_tiles,all_tiles,all_tiles);
-//        wall_corner_ul.setAllowedNeighbors( all_tiles,List.of(wall_vertical_t, wall_vertical_end, wall_vertical), all_tiles, List.of(wall_top), all_tiles, all_tiles,all_tiles,all_tiles);
-//        wall_corner_ur.setAllowedNeighbors( all_tiles,List.of(wall_vertical_t, wall_vertical_end, wall_vertical), List.of(wall_top) ,all_tiles, all_tiles, all_tiles,all_tiles,all_tiles);
-//
-//        wall_vertical.setAllowedNeighbors(List.of(wall_corner_ur, wall_corner_ul, wall_vertical, wall_vertical_t, wall_vertical_end), List.of(wall_corner_dl, wall_corner_dr, wall_vertical), all_tiles,all_tiles,all_tiles,all_tiles,all_tiles,all_tiles);
-//        wall_vertical_t.setAllowedNeighbors(List.of(void_tile, floor_regular,floor_spikes), List.of(wall_vertical, wall_corner_dl, wall_corner_dr), List.of(wall_top, wall_corner_ur), List.of(wall_top, wall_corner_ul), all_tiles, all_tiles,all_tiles,all_tiles);
-//        wall_vertical_end.setAllowedNeighbors(List.of(void_tile, floor_regular,floor_spikes, wall_bottom), all_tiles,all_tiles,all_tiles,all_tiles,all_tiles, all_tiles,all_tiles);
-//
-//        floor_regular.setAllowedNeighbors(List.of(wall_bottom, floor_regular,floor_spikes), List.of(wall_top, floor_regular, floor_spikes, wall_vertical_t, wall_vertical_end), List.of(wall_vertical, floor_regular, floor_spikes),List.of(wall_vertical, floor_regular, floor_spikes),all_tiles,all_tiles,all_tiles,all_tiles);
-//        floor_spikes.setAllowedNeighbors(List.of(wall_bottom, floor_regular,floor_spikes), List.of(wall_top, floor_regular, floor_spikes, wall_vertical_t, wall_vertical_end), List.of(wall_vertical, floor_regular, floor_spikes),List.of(wall_vertical, floor_regular, floor_spikes),all_tiles,all_tiles,all_tiles,all_tiles);
-//
-//        void_tile.setAllowedNeighbors(all_tiles,all_tiles,all_tiles,all_tiles,all_tiles,all_tiles,all_tiles,all_tiles);
-//        void_from_wall.setAllowedNeighbors(List.of(wall_bottom),all_tiles,all_tiles,all_tiles,all_tiles,all_tiles,all_tiles,all_tiles);
     }
     private void fill(Tile[][] tiles, Tile filler, Vector2 roomPosition) {
         for (int x = 0; x < tiles.length; x++) {

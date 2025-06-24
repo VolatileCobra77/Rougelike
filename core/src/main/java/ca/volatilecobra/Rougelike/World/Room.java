@@ -3,10 +3,7 @@ package ca.volatilecobra.Rougelike.World;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Room {
 
@@ -25,6 +22,8 @@ public class Room {
     public List<Vector2> left_exits = new ArrayList<Vector2>();
     public List<Vector2> right_exits = new ArrayList<Vector2>();
 
+    public HashMap<String, List<Vector2>> exits = new HashMap<>();
+
     public static Map<String, Room> ROOMS = new HashMap<>();
     public static Map<String, Room> BASE_ROOMS = new HashMap<>();
 
@@ -34,6 +33,10 @@ public class Room {
         this.location = location;
         this.tiles = new Tile[(int) size.x][(int) size.y];
 
+        exits.put("up", up_exits);
+        exits.put("down", down_exits);
+        exits.put("left", left_exits);
+        exits.put("right",right_exits);
 
 
         ROOMS.put(name, this);
@@ -51,6 +54,11 @@ public class Room {
         this.right_exits = right_exits;
         this.up_exits = up_exits;
         this.down_exits = down_exits;
+        exits.clear();
+        exits.put("up", up_exits);
+        exits.put("down", down_exits);
+        exits.put("left", left_exits);
+        exits.put("right",right_exits);
     }
 
     public void update_tile_pos(){
@@ -75,6 +83,8 @@ public class Room {
         r.down_exits = down_exits;
         r.left_exits = left_exits;
         r.right_exits = right_exits;
+
+        r.exits = exits;
 
         // Deep copy of tiles
         for (int x = 0; x < tiles.length; x++) {

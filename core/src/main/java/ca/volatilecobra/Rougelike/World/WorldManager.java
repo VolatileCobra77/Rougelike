@@ -1,11 +1,19 @@
 package ca.volatilecobra.Rougelike.World;
 
+import ca.volatilecobra.Rougelike.Entities.AI.AStar;
+import ca.volatilecobra.Rougelike.Entities.AI.Node;
 import ca.volatilecobra.Rougelike.GlobalVariables;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class WorldManager {
 
@@ -14,11 +22,22 @@ public class WorldManager {
     private Set<Vector2> occupied = new HashSet<>();
     private Random random = new Random();
 
-    public WorldManager(int num_rooms) {
+    private ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    private List<List<Vector2>> paths = Collections.synchronizedList(new ArrayList<>());
+    private List<ExitNode> allExits = Collections.synchronizedList(new ArrayList<>());
+
+    private Vector2 bounds = new Vector2();
+
+    public WorldManager(int num_rooms, int boundx, int boundy) {
         this.num_rooms = num_rooms;
         this.rooms = new ArrayList<>();
+        bounds.x = boundx;
+        bounds.y = boundy;
         generate(Room.BASE_ROOMS.values());
     }
+
+
+
 
     public Tile getTileAt(Vector2 pos) {
         for (Room room : rooms) {
@@ -39,6 +58,7 @@ public class WorldManager {
         }
         return null; // Not inside any room
     }
+
 
     public Room getRoomAt(Vector2 pos){
         for (Room room : rooms) {
@@ -61,30 +81,175 @@ public class WorldManager {
     public void draw_debug(ShapeRenderer shapeRenderer){
 
     }
+    class ExitNode {
+        public Vector2 position;
+        public Room room;
+
+        public ExitNode(Vector2 position, Room room) {
+            this.position = position;
+            this.room = room;
+        }
+    }
 
     public void generate(Collection<Room> prototypes) {
+
         outerLoop:
         for (int i = 0; i < num_rooms; i++) {
             List<Room> roomsShuffled = new ArrayList<>(prototypes);
             Collections.shuffle(roomsShuffled, random);
-            Vector2 location = new Vector2(random.nextInt(-100, 100), random.nextInt(-100,100));
+            Vector2 location = new Vector2(random.nextInt((int)-bounds.x, (int)bounds.x), random.nextInt((int)-bounds.y, (int)bounds.y));
 
             Room rm = roomsShuffled.get(i%roomsShuffled.size()).copy(i, location);
-            rm.update_tile_pos();
+
 
             int tries = 0;
-            while (isColliding(rm)){
-                rm.location = new Vector2(random.nextInt(-100, 100), random.nextInt(-100,100));
+            AtomicBoolean valid = new AtomicBoolean(true);
+            while (isColliding(rm) || !valid.get()){
+                rm.location = new Vector2(random.nextInt((int)-bounds.x, (int)bounds.x), random.nextInt((int)-bounds.y, (int)bounds.y));
                 tries++;
                 if (tries >= 100){
                     Room.ROOMS.remove(rm);
+                    System.err.println("Could not create all rooms, skipping remainder. Created " + i + " rooms.");
                     break outerLoop;
                 }
-            }
+                valid.set(true);
+                rm.exits.forEach((String exit, List<Vector2> vectors) ->{
+                    vectors.forEach((Vector2 vector)->{
+                        if (isOccupied(new Vector2(vector).scl(2))) valid.set(false);
+                    });
+                });
 
+            }
+            rm.exits.forEach((String exit, List<Vector2> vectors) -> {
+                vectors.forEach((Vector2 vector) -> {
+                    allExits.add(new ExitNode(vector.cpy().add(rm.location), rm));
+                });
+            });
+
+
+            rm.update_tile_pos();
             rooms.add(rm);
             System.out.println("Room placed at " + rm.location);
+
+
+
+
+
+
         }
+        List<ExitNode> shuffled = new ArrayList<>(allExits);
+        Collections.shuffle(shuffled);
+        ExitNode n1 = new ExitNode(new Vector2(0,0), null);
+        ExitNode n2 = new ExitNode(new Vector2(100,100), null);
+        shuffled = new ArrayList<ExitNode>();
+
+        shuffled.add(n1);
+        shuffled.add(n2);
+
+        rooms = new ArrayList<>();
+
+        while (shuffled.size() > 1) {
+            ExitNode exit = shuffled.get(0);
+            Collections.shuffle(shuffled);
+            ExitNode otherNode = shuffled.get(shuffled.size() - 1);
+
+            if (otherNode.position.epsilonEquals(exit.position, 10f)) continue;
+
+            Vector2 startPos = new Vector2(exit.position).scl(Tile.tile_size);
+            Vector2 endPos = new Vector2(otherNode.position).scl(Tile.tile_size);
+
+            System.out.println("Finding path from " + startPos + " to " + endPos);
+
+            RoomGenerationAStar rmAStar = new RoomGenerationAStar();
+            rmAStar.target = endPos;
+
+            List<Vector2> path = rmAStar.findPath(startPos, this);
+
+            if (rmAStar.couldFindPath()) {
+                System.out.println("success");
+                paths.add(path);
+
+                boolean prevWasCorner = false;
+
+                for (int i = 0; i < path.size() - 1; i++) {
+                    Vector2 current = path.get(i);
+                    Vector2 next = path.get(i + 1);
+
+                    float dx = next.x - current.x;
+                    float dy = next.y - current.y;
+
+                    // If the previous segment was a corner, skip placing this hallway piece
+                    if (prevWasCorner) {
+                        prevWasCorner = false; // reset flag for next iteration
+                        continue;
+                    }
+
+                    boolean isCorner = false;
+                    if (i < path.size() - 2) {
+                        Vector2 nextNext = path.get(i + 2);
+                        float dx2 = nextNext.x - next.x;
+                        float dy2 = nextNext.y - next.y;
+
+                        boolean dir1Horizontal = dy == 0 && dx != 0;
+                        boolean dir1Vertical = dx == 0 && dy != 0;
+                        boolean dir2Horizontal = dy2 == 0 && dx2 != 0;
+                        boolean dir2Vertical = dx2 == 0 && dy2 != 0;
+
+                        if ((dir1Horizontal && dir2Vertical) || (dir1Vertical && dir2Horizontal)) {
+                            isCorner = true;
+                        }
+                    }
+                    Room hallway;
+                    Vector2 hallwayLocation;
+
+                    if (isCorner) {
+                        // Mark that previous was corner to skip next hallway placement
+                        prevWasCorner = true;
+                        // You can handle corner placement here later if you want
+                        hallway = Room.ROOMS.get("x_junction").copy(i, new Vector2(0, 0));
+                        hallwayLocation = new Vector2(current.x, current.y);
+                    } else {
+
+                        if (Math.abs(dx) > Math.abs(dy)) {
+                            // Horizontal hallway piece
+                            hallway = Room.ROOMS.get("hallway_horizontal").copy(i, new Vector2(0, 0));
+                            hallwayLocation = new Vector2(Math.min(current.x, next.x), current.y + 1);
+                        } else {
+                            // Vertical hallway piece
+                            hallway = Room.ROOMS.get("hallway_vertical").copy(i, new Vector2(0, 0));
+                            hallwayLocation = new Vector2(current.x - 1, Math.min(current.y, next.y));
+                        }
+
+                        hallwayLocation.scl(1f / Tile.tile_size);
+
+
+                        // Do your placement here if you want
+                    }
+                    hallway.location = hallwayLocation;
+                    hallway.update_tile_pos();
+
+                    rooms.add(hallway);
+                }
+
+
+
+                allExits.remove(exit);
+                allExits.remove(otherNode);
+                shuffled.remove(exit);
+                shuffled.remove(otherNode);
+            }
+        }
+
+        System.out.println("All pathfinding tasks complete.");
+
+        // Shutdown executor if no longer needed
+        executor.shutdown();
+
+
+
+
+
+
     }
     private boolean isOccupied(Vector2 location) {
         for (Vector2 pos : occupied) {
@@ -100,6 +265,23 @@ public class WorldManager {
             case LEFT -> base.allowed_left;
             case RIGHT -> base.allowed_right;
         };
+    }
+
+    private boolean isColliding(Room rm){
+        int maxX = (int)(rm.location.x + rm.size.x);
+        int maxY = (int)(rm.location.y + rm.size.y);
+        int minX = (int)rm.location.x;
+        int minY = (int)rm.location.y;
+        List<Vector2> passedCheck = new ArrayList<>();
+        for (int x = minX; x < maxX; x++) {
+            for (int y = minY; y < maxY; y++) {
+                Vector2 vec = new Vector2(x,y);
+                if (isOccupied(vec)) return true;
+                passedCheck.add(vec);
+            }
+        }
+        occupied.addAll(passedCheck);
+        return false;
     }
 
     private Vector2 getExitOffset(Room from, Room to, Direction dir) {
@@ -187,5 +369,33 @@ public class WorldManager {
                 }
             }
         }
+
+
+        for (List<Vector2> path : paths){
+            Vector2 prevPoint = null;
+            for (Vector2 vec :path){
+                if (prevPoint == null){
+                    prevPoint = vec;
+                    continue;
+                }
+                shapeRenderer.line(prevPoint.x, prevPoint.y, vec.x, vec.y);
+                prevPoint = vec;
+            }
+        }
+         for (RoomGenerationAStar astar : RoomGenerationAStar.getInstancesSnapshot()){
+            Set<Node> closedSetSnapshot = astar.getClosedSetSnapshot();
+            Set<Node> openSetSnapshot = astar.getOpenSetSnapshot();
+            shapeRenderer.setColor(0,1,0,1);
+            for (Node node :closedSetSnapshot){
+                shapeRenderer.circle(node.position.x, node.position.y, 4);
+            }
+            shapeRenderer.setColor(0,1,1,1);
+            for (Node node :openSetSnapshot){
+                shapeRenderer.circle(node.position.x, node.position.y, 4);
+            }
+        }
+    }
+    public void dispose(){
+        executor.shutdownNow();
     }
 }

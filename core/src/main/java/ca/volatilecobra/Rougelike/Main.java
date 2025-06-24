@@ -49,7 +49,7 @@ public class Main extends ApplicationAdapter {
         font = new BitmapFont();
         localPlayer = new Player(new Vector2(0,0));
         System.out.println("Entity count: " + ENTITIES.size());
-        world = new WorldManager(100);
+        world = new WorldManager(2, 10,10);
         GlobalVariables.CAMERA = cam;
         cam.setToOrtho(false, Gdx.graphics.getWidth(),  Gdx.graphics.getHeight());
         for (int i = 0; i < 5; i++) {
@@ -186,5 +186,7 @@ public class Main extends ApplicationAdapter {
 
         shape_renderer.dispose();
         Entity.Dispose_all();
+
+        world.dispose();
     }
 }
