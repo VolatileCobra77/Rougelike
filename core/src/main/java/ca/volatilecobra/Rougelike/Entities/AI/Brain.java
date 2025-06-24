@@ -37,6 +37,12 @@ public class Brain {
 
     public float baseAccel = 500;
 
+    public float detonatingTime = 0f;
+    public float explosionTime = 5f;
+
+    public Vector2 ogSize = new Vector2(0,0);
+
+
     public float targetAquiredAccel = 1000;
 
     public float targetAquiredDecel = 400;
@@ -117,7 +123,9 @@ public class Brain {
         return vec;
     }
 
-    public Brain(){
+    public Brain(Entity host){
+        this.host = host;
+        this.ogSize = new Vector2(host.get_size());
     }
 
     public void update_target(Vector2 new_target){
@@ -198,6 +206,7 @@ public class Brain {
                     }
                     hasReachedTarget = host.get_pos().epsilonEquals(roamingTarget, 60f);
 
+                    host.setDecel(1000f);
 
 
                     break;
@@ -211,21 +220,26 @@ public class Brain {
 
                     HashMap<Task, Float> decisions = new HashMap<>();
                     decisions.put(Task.ROAM, 0.5f);
-                    decisions.put(Task.IDLE, 0.3f);
+                    decisions.put(Task.IDLE, 0.29f);
                     decisions.put(Task.GO_HOME, 0.2f);
+                    decisions.put(Task.DETONATE, 0.01f);
 
                     AtomicReference<Float> total= new AtomicReference<>((float) 0);
                     Random rnd = new Random();
                     float val = rnd.nextFloat(0,1);
-                    final Task[] selected = new Task[]{(Task.IDLE)};
+                    final Task[] selected = new Task[]{Task.GO_HOME};
+                    final boolean[] isFirst = {true};
                     decisions.forEach((task, weight) -> {
                         total.updateAndGet(v -> ((v + weight)));
 
+
                         float diffWeight = Math.abs(val - weight);
                         float diffSelected = Math.abs(val - decisions.get(selected[0]));
+                        System.out.println("Diff Weight: " + diffWeight);
+                        System.out.println("Diff Selected: " + diffSelected);
 
-                        selected[0] = (diffWeight < diffSelected) ? task : selected[0];
-
+                        selected[0] = (diffWeight < diffSelected)|| isFirst[0] ? task : selected[0];
+                        isFirst[0] = false;
 
                     });
 
@@ -246,6 +260,7 @@ public class Brain {
                             target = new Vector2(home);
                             break;
                         }
+
                     }
 
 
@@ -253,10 +268,30 @@ public class Brain {
 
 
                 }
+                case DETONATE:{
+                    detonatingTime += updateinterval;
+                    if (detonatingTime >= explosionTime){
+                        host.isDead = true;
+                        host.timeSinceDeath =0;
+                        current_task = Task.IDLE;
+                        detonatingTime = 0;
+                        host.set_size(new Vector2(ogSize));
+                        break;
+                    }
+
+                    //host.set_size(host.get_size().scl(2f));
+
+
+
+
+
+
+                    break;
+                }
 
             }
 
-            requestPathAsync(new Vector2(host.get_pos()).add(new Vector2(host.get_size()).scl(0.5f)), target, worldManager, path -> {
+            requestPathAsync(new Vector2(host.getTilePos()).scl(Tile.tile_size).add(new Vector2(host.get_size()).scl(0.5f)), target, worldManager, path -> {
                 if (path != null) {
                     lastPath = path; // Safe, runs on main thread
                     pathfinderDone = true;
@@ -315,10 +350,10 @@ public class Brain {
             Vector2 start = host.get_pos();
             Vector2 end = Entity.Get_from_id("player").get_pos();
             float dist = Math.min(viewDist, host.get_pos().dst(Entity.Get_from_id("player").get_pos()));
-            Hit hit = Physics.raycast(start, end,dist,  worldManager, 16);
+            Hit hit = Physics.raycast(start.cpy(), end.cpy(),dist,  worldManager, 16);
             debug_last_hit = hit.location;
         }
-        shapeRenderer.setColor(1,0,0,1);
+
         shapeRenderer.line(host.get_pos().x, host.get_pos().y, debug_last_hit.x, debug_last_hit.y);
 
         if (current_task == Task.ROAM){

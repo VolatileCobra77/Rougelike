@@ -15,9 +15,8 @@ public class Enemy extends Entity {
     public Enemy(String id, Vector2 startPos){
         super(id, startPos, new Vector2 (8,16), 0f);
         _fallback_color = new Color(1,0,0,1);
-        brain = new Brain();
+        brain = new Brain(this);
         brain.home = new Vector2(this.get_pos());
-        brain.host = this;
 
     }
     @Override

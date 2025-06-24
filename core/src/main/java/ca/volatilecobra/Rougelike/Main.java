@@ -52,8 +52,8 @@ public class Main extends ApplicationAdapter {
         world = new WorldManager(2, 10,10);
         GlobalVariables.CAMERA = cam;
         cam.setToOrtho(false, Gdx.graphics.getWidth(),  Gdx.graphics.getHeight());
-        for (int i = 0; i < 5; i++) {
-            //new Enemy("enemy_" + i, new Vector2(-10 - i*8,-10)).brain.update_target(localPlayer);
+        for (int i = 0; i < 1; i++) {
+           new Enemy("enemy_" + i, new Vector2(-10 - i*8,-10)).brain.update_target(localPlayer);
         }
 
     }

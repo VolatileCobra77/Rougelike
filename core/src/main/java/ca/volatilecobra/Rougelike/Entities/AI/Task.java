@@ -5,5 +5,6 @@ public enum Task {
     ROAM,
     GO_HOME,
     GO_TO,
-    IDLE
+    IDLE,
+    DETONATE
 }
