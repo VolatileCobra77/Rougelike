@@ -143,10 +143,10 @@ public class WorldManager {
         ExitNode n2 = new ExitNode(new Vector2(100,100), null);
         shuffled = new ArrayList<ExitNode>();
 
-        shuffled.add(n1);
-        shuffled.add(n2);
-
-        rooms = new ArrayList<>();
+//        shuffled.add(n1);
+//        shuffled.add(n2);
+//
+//        rooms = new ArrayList<>();
 
         while (shuffled.size() > 1) {
             ExitNode exit = shuffled.get(0);

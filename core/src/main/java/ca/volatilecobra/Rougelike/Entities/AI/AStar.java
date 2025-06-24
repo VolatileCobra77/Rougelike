@@ -111,6 +111,11 @@ public class AStar {
 
                 float tentativeG = currentNode.gCost + getDistance(currentNode.position, neighborPos);
 
+                // Add penalty if neighbor tile is adjacent to a wall
+                if (isNearWall(tilePos, worldManager)) {
+                    tentativeG += 5.0f;
+                }
+
                 Float bestG = gScores.get(neighborPos);
                 if (bestG == null || tentativeG < bestG) {
                     gScores.put(neighborPos, tentativeG);
@@ -134,7 +139,18 @@ public class AStar {
             current = current.parent;
         }
         Collections.reverse(path);
-        return path;
+        return getRidOfIntermediates(path);
+    }
+
+    private List<Vector2> getRidOfIntermediates(List<Vector2> points){
+        List<Vector2> toRemove = new ArrayList<>();
+        for (Vector2 point : points){
+            if (toRemove.contains(point)){
+                continue;
+            }
+        }
+
+        return points;
     }
 
     private float getDistance(Vector2 a, Vector2 b) {
@@ -166,5 +182,22 @@ public class AStar {
 
     public synchronized List<Vector2> getLastPathSnapshot() {
         return lastPathSnapshot;
+    }
+
+    private boolean isNearWall(Vector2 tilePos, WorldManager worldManager) {
+        Vector2[] adjacentTiles = new Vector2[] {
+            new Vector2(tilePos.x + 1, tilePos.y),
+            new Vector2(tilePos.x - 1, tilePos.y),
+            new Vector2(tilePos.x, tilePos.y + 1),
+            new Vector2(tilePos.x, tilePos.y - 1)
+        };
+
+        for (Vector2 adj : adjacentTiles) {
+            Tile tile = worldManager.getTileAt(adj);
+            if (tile != null && tile.collides) {
+                return true;
+            }
+        }
+        return false;
     }
 }
